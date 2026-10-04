@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ruta Perú · Tu itinerario en Lima</title>
+  <meta name="description" content="Planificador de itinerarios para turistas en Lima, Perú: días, vuelos, comidas y traslados.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦙</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="#">
+        <span class="brand-mark" aria-hidden="true">🦙</span>
+        <span>Ruta Perú</span>
+        <small data-i18n="tagline"></small>
+      </a>
+      <div class="lang" role="group" aria-label="Idioma / Language">
+        <button type="button" data-lang="es">ES</button>
+        <button type="button" data-lang="en">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <h1 data-i18n="heroTitle"></h1>
+        <p data-i18n="heroText"></p>
+      </div>
+    </section>
+
+    <section class="wrap">
+      <form id="planner-form" class="card form" novalidate>
+        <fieldset>
+          <legend data-i18n="stepCity"></legend>
+          <div class="cities" id="cities">
+            <label class="city">
+              <input type="radio" name="city" value="lima" checked>
+              <span><strong>Lima</strong><em>🌊 Costa</em></span>
+            </label>
+            <label class="city disabled">
+              <input type="radio" name="city" value="cusco" disabled>
+              <span><strong>Cusco</strong><em data-i18n="soon"></em></span>
+            </label>
+            <label class="city disabled">
+              <input type="radio" name="city" value="arequipa" disabled>
+              <span><strong>Arequipa</strong><em data-i18n="soon"></em></span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend data-i18n="stepTrip"></legend>
+          <div class="grid">
+            <label class="field">
+              <span data-i18n="arrivalDate"></span>
+              <input type="date" name="arrivalDate" required>
+            </label>
+            <label class="field">
+              <span data-i18n="arrivalTime"></span>
+              <input type="time" name="arrivalTime" value="08:00" required>
+            </label>
+            <label class="field">
+              <span data-i18n="days"></span>
+              <div class="stepper">
+                <button type="button" data-step="-1" aria-label="-">−</button>
+                <input type="number" name="days" min="1" max="14" value="3" required>
+                <button type="button" data-step="1" aria-label="+">+</button>
+              </div>
+            </label>
+            <label class="field">
+              <span data-i18n="departureTime"></span>
+              <input type="time" name="departureTime" value="22:00" required>
+              <small class="hint" id="early-hint" data-i18n="earlyHint" hidden></small>
+            </label>
+            <div class="field">
+              <span data-i18n="flightType"></span>
+              <div class="segmented">
+                <label><input type="radio" name="flightType" value="intl" checked><span data-i18n="intl"></span></label>
+                <label><input type="radio" name="flightType" value="dom"><span data-i18n="dom"></span></label>
+              </div>
+            </div>
+            <label class="field">
+              <span data-i18n="hotelZone"></span>
+              <select name="hotelZone" id="hotelZone"></select>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend data-i18n="stepPrefs"></legend>
+          <div class="field">
+            <span data-i18n="interests"></span>
+            <div class="chips" id="interests"></div>
+          </div>
+          <div class="grid two">
+            <div class="field">
+              <span data-i18n="pace"></span>
+              <div class="segmented">
+                <label><input type="radio" name="pace" value="relaxed"><span data-i18n="relaxed"></span></label>
+                <label><input type="radio" name="pace" value="moderate" checked><span data-i18n="moderate"></span></label>
+                <label><input type="radio" name="pace" value="intense"><span data-i18n="intense"></span></label>
+              </div>
+            </div>
+            <div class="field">
+              <span data-i18n="budget"></span>
+              <div class="segmented">
+                <label><input type="radio" name="budget" value="low"><span data-i18n="low"></span></label>
+                <label><input type="radio" name="budget" value="mid" checked><span data-i18n="mid"></span></label>
+                <label><input type="radio" name="budget" value="high"><span data-i18n="high"></span></label>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <p class="error" id="form-error" role="alert" hidden></p>
+        <button class="btn primary big" type="submit" data-i18n="generate"></button>
+      </form>
+    </section>
+
+    <section class="wrap" id="result" hidden>
+      <div class="result-head">
+        <div>
+          <h2 id="result-title"></h2>
+          <p id="result-summary" class="muted"></p>
+        </div>
+        <div class="actions">
+          <button class="btn" type="button" id="btn-edit" data-i18n="edit"></button>
+          <button class="btn" type="button" id="btn-regen" data-i18n="regenerate"></button>
+          <button class="btn primary" type="button" id="btn-print" data-i18n="print"></button>
+        </div>
+      </div>
+      <div id="warnings"></div>
+      <nav class="day-tabs" id="day-tabs"></nav>
+      <div id="days"></div>
+      <div class="card total" id="total"></div>
+      <div class="card tips">
+        <h3 data-i18n="tipsTitle"></h3>
+        <ul id="tips"></ul>
+        <p class="muted small" data-i18n="disclaimer"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap" data-i18n="footer"></div>
+  </footer>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/data/lima.js"></script>
+  <script src="js/planner.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
