@@ -10,6 +10,7 @@ Página web para turistas que llegan al Perú. Empieza con un cuestionario corto
 - Personalización: lugares para familias con niños o para parejas, joyas menos turísticas si ya conoce Lima, y sin cebicherías si evita pescados y mariscos.
 - Tour recomendado: *Lima City Tour Plus* de Lima VIP Travel (US$ 38, 4 h). Si el turista lo acepta, se agenda en el primer día que encaje con sus vuelos y sus paradas no se repiten en el resto del plan. Incluye botón para reservar.
 - Precios en soles y en dólares (tipo de cambio editable).
+- Taxi al aeropuerto con tu servicio: al final del itinerario el turista reserva el traslado (y opcionalmente el recojo al llegar) por WhatsApp, con la hora de recojo calculada, el hotel, el vuelo, pasajeros y maletas. El número de WhatsApp y el precio por zona se configuran en el panel admin (Ajustes); la tarjeta solo aparece cuando hay un número configurado.
 - Gasto estimado por día y total, enlaces a Google Maps, descarga del itinerario en PDF y versión en español e inglés.
 
 ## Panel de administración

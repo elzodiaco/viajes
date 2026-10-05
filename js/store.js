@@ -9,7 +9,13 @@
  */
 (function () {
   var LOCAL_KEY = "rutaperu.overrides";
-  var DEFAULT_SETTINGS = { exchangeRate: 3.75, taxiBase: 8, taxiPerMin: 0.6 };
+  var DEFAULT_SETTINGS = {
+    exchangeRate: 3.75, taxiBase: 8, taxiPerMin: 0.6,
+    // Servicio propio de taxi al aeropuerto (se reserva por WhatsApp).
+    transferEnabled: true,
+    whatsapp: "",
+    transferPrices: { miraflores: 70, barranco: 75, sanisidro: 65, centro: 60, callao: 35 }
+  };
 
   var overrides = { attractions: {}, restaurants: {}, tours: {}, settings: {} };
   var listeners = [];

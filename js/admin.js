@@ -6,6 +6,7 @@
 (function () {
   var DAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
   var DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
+  var FARE_ZONES = ["miraflores", "barranco", "sanisidro", "centro", "callao"];
 
   var panel = document.getElementById("admin");
   var listEl = document.getElementById("admin-list");
@@ -162,6 +163,19 @@
       "</div>" +
       '<p class="muted small">Ejemplo: un taxi de 30 minutos cuesta aprox. S/ ' +
       Math.round(s.taxiBase + 30 * s.taxiPerMin) + ". El tipo de cambio se usa para mostrar los precios en dólares.</p>" +
+      "<h3>Taxi al aeropuerto (tu servicio)</h3>" +
+      '<p class="muted small">Al final del itinerario el turista puede reservar contigo el traslado al aeropuerto. ' +
+      "La reserva llega a tu WhatsApp con la hora de recojo, el hotel, el vuelo, los pasajeros y las maletas.</p>" +
+      check("set-transfer-on", "Ofrecer el taxi al aeropuerto", s.transferEnabled !== false) +
+      '<div class="admin-grid">' +
+      field("set-whatsapp", "Tu número de WhatsApp (con código de país, p. ej. 51987654321)",
+        input("set-whatsapp", s.whatsapp || "", "tel", ' inputmode="tel" placeholder="51987654321"')) +
+      "</div>" +
+      '<div class="field"><span class="label">Precio por trayecto según la zona del hotel (S/)</span><div class="admin-grid fares">' +
+      FARE_ZONES.map(function (z) {
+        var v = (s.transferPrices || {})[z];
+        return field("set-fare-" + z, zoneName(city(), z), input("set-fare-" + z, v == null ? "" : v, "number", ' min="0" step="1"'));
+      }).join("") + "</div></div>" +
       '<p class="error" id="settings-error" hidden></p>' +
       '<div class="admin-actions"><button class="btn primary" type="submit">Guardar ajustes</button></div>' +
       "</form>";
@@ -355,9 +369,20 @@
     var data = {
       exchangeRate: num("set-rate"),
       taxiBase: num("set-taxi-base"),
-      taxiPerMin: num("set-taxi-min")
+      taxiPerMin: num("set-taxi-min"),
+      transferEnabled: checked("set-transfer-on"),
+      whatsapp: val("set-whatsapp").replace(/[^\d]/g, ""),
+      transferPrices: {}
     };
     var errors = [];
+    FARE_ZONES.forEach(function (z) {
+      var v = num("set-fare-" + z);
+      if (v >= 0) data.transferPrices[z] = v;
+      else errors.push("Escribe el precio del taxi para " + zoneName(city(), z) + ".");
+    });
+    if (data.transferEnabled && !/^\d{8,15}$/.test(data.whatsapp)) {
+      errors.push("Escribe tu número de WhatsApp con código de país, solo números (por ejemplo 51987654321).");
+    }
     if (!(data.exchangeRate >= 0.5)) errors.push("Ingresa un tipo de cambio válido (por ejemplo 3.75).");
     if (!(data.taxiBase >= 0) || !(data.taxiPerMin >= 0)) errors.push("Las tarifas de taxi deben ser 0 o mayores.");
     showError("settings-error", errors);

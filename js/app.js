@@ -174,13 +174,19 @@
       case "arrival":
         title = t("ev.arrival", { airport: L(c.airport.name) }); desc = t("ev.arrivalDesc"); break;
       case "transfer-in":
-        title = t("ev.transferIn", { zone: zoneName }); desc = t("ev.transferInDesc"); break;
+        title = t("ev.transferIn", { zone: zoneName });
+        desc = ev.fixedFare ? t("ev.transferOurs") : t("ev.transferInDesc");
+        if (ev.fixedFare) meta.push(money(ev.cost));
+        break;
       case "checkin":
         title = t("ev.checkin"); desc = t("ev.checkinDesc"); break;
       case "pickup":
         title = t("ev.pickup"); desc = t("ev.pickupDesc"); break;
       case "transfer-out":
-        title = t("ev.transferOut"); desc = t("ev.transferOutDesc"); break;
+        title = t("ev.transferOut");
+        desc = t("ev.transferOutDesc") + (ev.fixedFare ? " " + t("ev.transferOurs") : "");
+        if (ev.fixedFare) meta.push(money(ev.cost));
+        break;
       case "airport":
         title = t("ev.airport");
         desc = t("ev.airportDesc", {
@@ -238,7 +244,7 @@
     var travel = null;
     var isTransfer = ev.type === "return" || ev.type === "transfer-in" || ev.type === "transfer-out";
     if (ev.travel && ev.travel.mode !== "none") {
-      travel = { mode: ev.travel.mode, text: duration(ev.travel.min) + " " + t(ev.travel.mode) };
+      travel = { mode: ev.travel.mode, text: duration(ev.travel.min) + (ev.fixedFare ? "" : " " + t(ev.travel.mode)) };
     }
     return {
       type: ev.type,
@@ -291,8 +297,17 @@
           events: d.events.map(function (ev) { return eventData(ev, res); })
         };
       }),
-      labels: { estDay: t("estDay"), estTotal: t("estTotal"), tips: t("tipsTitle"), map: t("map"), book: t("tour.book") },
+      labels: { estDay: t("estDay"), estTotal: t("estTotal"), tips: t("tipsTitle"), map: t("map"), book: t("tour.book"), taxiBook: t("cab.book") },
       persona: personaText(prefs),
+      taxi: (function () {
+        var info = taxiInfo(res, prefs);
+        if (!info) return null;
+        return {
+          text: t("cab.pdf", { phone: info.phone, date: info.pickupDate, time: info.pickupTime }),
+          url: "https://wa.me/" + info.phone + "?text=" + encodeURIComponent(t("cab.msgHello") + "\n• " +
+            t("cab.msgPickup") + ": " + info.pickupDate + ", " + info.pickupTime)
+        };
+      })(),
       total: soles(res.total) + " · " + dollars(res.total),
       note: t("estNote") + " " + t("rate", { rate: c.settings.exchangeRate.toFixed(2) }),
       tips: c.tips.map(L),
@@ -358,6 +373,103 @@
     box.innerHTML = '<aside class="card tour-card">' + tourCardHTML(tour, status + actions) + "</aside>";
   }
 
+  // ------------------------------------------------- taxi al aeropuerto
+  function findEvent(res, type) {
+    var found = null;
+    res.days.forEach(function (d) {
+      d.events.forEach(function (e) { if (e.type === type) found = { ev: e, date: d.date, base: d.index * Planner.DAY }; });
+    });
+    return found;
+  }
+
+  function taxiInfo(res, prefs) {
+    var s = city().settings;
+    if (!s.transferEnabled || !s.whatsapp) return null;
+    var out = findEvent(res, "transfer-out");
+    var arr = findEvent(res, "transfer-in");
+    if (!out) return null;
+    var fmt = new Intl.DateTimeFormat(lang === "es" ? "es-PE" : "en-US", { weekday: "long", day: "numeric", month: "long" });
+    // El recojo puede caer la noche anterior a un vuelo de madrugada.
+    var outDate = new Date(res.days[0].date.getTime());
+    outDate.setDate(outDate.getDate() + Math.floor(out.ev.start / Planner.DAY));
+    var arrDate = new Date(res.days[0].date.getTime());
+    arrDate.setDate(arrDate.getDate() + Math.floor(arr.ev.start / Planner.DAY));
+    return {
+      phone: s.whatsapp,
+      price: (s.transferPrices || {})[prefs.hotelZone],
+      pickupDate: fmt.format(outDate), pickupTime: Planner.fmt(out.ev.start),
+      arrivalDate: fmt.format(arrDate), arrivalTime: Planner.fmt(arr.ev.start)
+    };
+  }
+
+  function taxiMessage(info, prefs, fields) {
+    var zone = L(city().zones[prefs.hotelZone].name);
+    var lines = [
+      t("cab.msgHello"),
+      "• " + t("cab.msgName") + ": " + fields.name,
+      "• " + t("cab.msgPickup") + ": " + info.pickupDate + ", " + info.pickupTime,
+      "• " + t("cab.msgHotel") + ": " + fields.hotel + " (" + zone + ")",
+      "• " + t("cab.msgFlight") + ": " + prefs.departureTime + " (" + t("cab." + prefs.flightType) + ")" +
+        (fields.flightNo ? " " + fields.flightNo : ""),
+      "• " + t("cab.msgPax") + ": " + fields.pax + " · " + t("cab.msgBags") + ": " + fields.bags
+    ];
+    if (info.price) lines.push("• " + t("cab.msgPrice") + ": " + money(info.price));
+    if (fields.arrival) lines.push("• " + t("cab.msgArrival") + ": " + info.arrivalDate + ", " + info.arrivalTime);
+    lines.push(t("cab.msgFrom"));
+    return lines.join("\n");
+  }
+
+  function taxiFields() {
+    return {
+      name: document.getElementById("taxi-name").value.trim(),
+      hotel: document.getElementById("taxi-hotel").value.trim(),
+      pax: document.getElementById("taxi-pax").value || "1",
+      bags: document.getElementById("taxi-bags").value || "1",
+      flightNo: document.getElementById("taxi-flight").value.trim(),
+      arrival: document.getElementById("taxi-arrival").checked
+    };
+  }
+
+  function updateTaxiLink() {
+    var link = document.getElementById("taxi-book");
+    if (!link || !lastResult) return;
+    var info = taxiInfo(lastResult, lastPrefs);
+    link.href = "https://wa.me/" + info.phone + "?text=" + encodeURIComponent(taxiMessage(info, lastPrefs, taxiFields()));
+  }
+
+  function renderTaxiCard(res, prefs) {
+    var box = document.getElementById("taxi-card");
+    var info = taxiInfo(res, prefs);
+    if (!info) { box.innerHTML = ""; return; }
+    // Conserva lo que el turista ya escribió si el plan se vuelve a generar.
+    var prev = document.getElementById("taxi-name") ? taxiFields() : { name: "", hotel: "", pax: "2", bags: "2", flightNo: "", arrival: false };
+    var num = function (id, label, value) {
+      return '<label class="field" for="' + id + '"><span>' + esc(label) + '</span><input id="' + id + '" type="number" min="1" max="12" value="' + esc(value) + '"></label>';
+    };
+    box.innerHTML =
+      '<section class="card taxi-card" aria-labelledby="taxi-title">' +
+        '<div class="taxi-head"><span class="taxi-icon" aria-hidden="true">🚖</span><div>' +
+          '<h3 id="taxi-title">' + esc(t("cab.title")) + "</h3>" +
+          "<p>" + esc(t("cab.lead", { date: info.pickupDate, time: info.pickupTime, flight: prefs.departureTime })) + "</p>" +
+        "</div>" +
+        (info.price ? '<div class="taxi-price"><small>' + esc(t("cab.price")) + "</small><strong>" + money(info.price) + "</strong></div>" : "") +
+        "</div>" +
+        '<div class="taxi-grid">' +
+          '<label class="field wide" for="taxi-name"><span>' + esc(t("cab.name")) + '</span><input id="taxi-name" type="text" autocomplete="name" value="' + esc(prev.name) + '"></label>' +
+          '<label class="field wide" for="taxi-hotel"><span>' + esc(t("cab.hotel")) + '</span><input id="taxi-hotel" type="text" value="' + esc(prev.hotel) + '"></label>' +
+          num("taxi-pax", t("cab.pax"), prev.pax) +
+          num("taxi-bags", t("cab.bags"), prev.bags) +
+          '<label class="field wide" for="taxi-flight"><span>' + esc(t("cab.flightNo")) + '</span><input id="taxi-flight" type="text" value="' + esc(prev.flightNo) + '"></label>' +
+        "</div>" +
+        '<label class="check"><input id="taxi-arrival" type="checkbox"' + (prev.arrival ? " checked" : "") + "> " +
+          esc(t("cab.arrival", { date: info.arrivalDate, time: info.arrivalTime })) + "</label>" +
+        '<p class="error" id="taxi-error" hidden></p>' +
+        '<div class="taxi-actions"><a class="btn whatsapp" id="taxi-book" target="_blank" rel="noopener" href="#">' + esc(t("cab.book")) + "</a>" +
+        '<span class="muted small">' + esc(t("cab.note")) + "</span></div>" +
+      "</section>";
+    updateTaxiLink();
+  }
+
   function render(res, prefs) {
     var c = city();
     var dateFmt = new Intl.DateTimeFormat(lang === "es" ? "es-PE" : "en-US", { weekday: "long", day: "numeric", month: "long" });
@@ -395,6 +507,8 @@
       ' <span class="usd">' + dollars(res.total) + "</span></strong></div>" +
       '<p class="muted small">' + esc(t("estNote")) + " " +
       esc(t("rate", { rate: c.settings.exchangeRate.toFixed(2) })) + "</p>";
+
+    renderTaxiCard(res, prefs);
 
     document.getElementById("tips").innerHTML = c.tips.map(function (tip) {
       return "<li>" + esc(L(tip)) + "</li>";
@@ -492,7 +606,30 @@
     generate(1);
   });
 
+  resultEl.addEventListener("input", function (e) {
+    if (e.target.closest && e.target.closest(".taxi-card")) {
+      document.getElementById("taxi-error").hidden = true;
+      updateTaxiLink();
+    }
+  });
+  resultEl.addEventListener("change", function (e) {
+    if (e.target.id === "taxi-arrival") updateTaxiLink();
+  });
+
   resultEl.addEventListener("click", function (e) {
+    if (e.target.id === "taxi-book") {
+      var f = taxiFields();
+      var err = document.getElementById("taxi-error");
+      if (!f.name || !f.hotel) {
+        e.preventDefault();
+        err.textContent = t("cab.missing");
+        err.hidden = false;
+        (f.name ? document.getElementById("taxi-hotel") : document.getElementById("taxi-name")).focus();
+        return;
+      }
+      err.hidden = true;
+      updateTaxiLink();
+    }
     if (e.target.id === "tour-add") {
       var yes = form.querySelector('input[name="wantsTour"][value="yes"]');
       if (yes) yes.checked = true;

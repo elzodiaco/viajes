@@ -11,6 +11,7 @@
   --teal: #1f6f78;
   --teal-soft: #e0f0f1;
   --gold: #d79a2b;
+  --whatsapp: #128c4a;
   --shadow: 0 1px 2px rgba(42, 33, 28, .06), 0 8px 24px rgba(42, 33, 28, .06);
   --radius: 16px;
   --font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -280,7 +281,7 @@ body.admin-open main > :not(#admin) { display: none; }
 .admin-tabs button { border: 0; background: none; font: 500 .9rem var(--font); color: var(--muted); padding: 8px 14px; border-radius: 8px; cursor: pointer; }
 .admin-tabs button[aria-selected="true"] { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
 .admin-search { flex: 1 1 220px; max-width: 320px; }
-.admin-search input, .admin-form input[type="text"], .admin-form textarea, .admin-form input[type="search"] {
+.admin-search input, .admin-form input[type="text"], .admin-form input[type="tel"], .admin-form input[type="url"], .admin-form textarea, .admin-form input[type="search"] {
   width: 100%; font: 400 .95rem var(--font); color: var(--text); background: var(--surface-2);
   border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
 }
@@ -394,6 +395,25 @@ body.admin-open main > :not(#admin) { display: none; }
   .wizard-progress .bar i, .option span { transition: none; }
 }
 
+/* --------------------------------------------------- taxi al aeropuerto */
+.taxi-card { padding: 22px 24px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 16px; border-color: color-mix(in srgb, var(--teal) 45%, var(--border)); }
+.taxi-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: start; }
+.taxi-icon { font-size: 2rem; line-height: 1; }
+.taxi-head h3 { font-size: 1.3rem; }
+.taxi-head p { margin: 6px 0 0; color: var(--muted); max-width: 60ch; }
+.taxi-price { text-align: right; }
+.taxi-price small { display: block; font-size: .75rem; color: var(--muted); }
+.taxi-price strong { font-size: 1.05rem; white-space: nowrap; }
+.taxi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.taxi-grid .field.wide { grid-column: span 2; }
+.taxi-grid input[type="text"] {
+  width: 100%; font: 500 1rem var(--font); color: var(--text); background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; height: 46px;
+}
+.taxi-actions { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.btn.whatsapp { background: var(--whatsapp); border-color: var(--whatsapp); color: #fff; text-decoration: none; padding: 12px 20px; }
+.btn.whatsapp:hover { filter: brightness(1.06); }
+
 /* ------------------------------------------------------------ responsive */
 @media (max-width: 760px) {
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -415,6 +435,11 @@ body.admin-open main > :not(#admin) { display: none; }
   .actions .btn { flex: 1; padding: 10px 8px; font-size: .85rem; }
   .admin-grid { grid-template-columns: minmax(0, 1fr); }
   .options { grid-template-columns: minmax(0, 1fr); }
+  .taxi-head { grid-template-columns: auto minmax(0, 1fr); }
+  .taxi-price { grid-column: 1 / -1; text-align: left; }
+  .taxi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .taxi-grid .field.wide { grid-column: 1 / -1; }
+  .taxi-card { padding: 18px; }
   .wizard legend { font-size: 1.3rem; }
   .tour-card { padding: 18px; }
   .admin-form { padding: 18px; }

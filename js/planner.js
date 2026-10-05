@@ -153,19 +153,22 @@
     function push(ev, day) {
       day = day || days[dayOf(ev.start)];
       day.events.push(ev);
-      day.cost += (ev.cost || 0) + (ev.travel ? taxiCost(ev.travel) : 0);
+      day.cost += (ev.cost || 0) + (ev.travel && !ev.fixedFare ? taxiCost(ev.travel) : 0);
     }
 
     // --- Llegada -----------------------------------------------------------
     // Aunque pase la medianoche, la llegada se muestra completa en el día 1.
     push({ type: "arrival", start: arrAbs, end: arrAbs + exitAirport, place: airport }, days[0]);
-    push({ type: "transfer-in", start: arrAbs + exitAirport, end: atHotel, travel: transfer, place: hotel }, days[0]);
+    // Si hay servicio propio de traslado, su tarifa reemplaza la del taxi por aplicativo.
+    var fare = settings.transferEnabled && settings.whatsapp && settings.transferPrices ? settings.transferPrices[prefs.hotelZone] : null;
+    var fareEv = fare ? { cost: fare, fixedFare: true } : {};
+    push(Object.assign({ type: "transfer-in", start: arrAbs + exitAirport, end: atHotel, travel: transfer, place: hotel }, fareEv), days[0]);
     push({ type: "checkin", start: atHotel, end: readyAbs, place: hotel }, days[0]);
 
     // --- Salida ------------------------------------------------------------
     var pickup = leaveAbs - 20;
     push({ type: "pickup", start: pickup, end: leaveAbs, place: hotel });
-    push({ type: "transfer-out", start: leaveAbs, end: leaveAbs + transfer.min, travel: transfer, place: airport });
+    push(Object.assign({ type: "transfer-out", start: leaveAbs, end: leaveAbs + transfer.min, travel: transfer, place: airport }, fareEv));
     push({ type: "airport", start: leaveAbs + transfer.min, end: depAbs, place: airport });
     push({ type: "flight", start: depAbs, end: depAbs, place: airport });
 

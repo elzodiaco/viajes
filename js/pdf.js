@@ -144,6 +144,18 @@
     color(C.muted); font("normal", 8.5); doc.text(note, M + 4, y + 19);
     y += 24 + note.length * lh(8.5);
 
+    // Taxi al aeropuerto
+    if (data.taxi) {
+      var taxi = lines(data.taxi.text, PAGE_W - 2 * M - 8, "bold", 9.5);
+      ensure(taxi.length * lh(9.5) + 12);
+      doc.setFillColor(224, 240, 241);
+      doc.roundedRect(M, y - 1, PAGE_W - 2 * M, taxi.length * lh(9.5) + 9, 3, 3, "F");
+      color(C.teal); font("bold", 9.5); doc.text(taxi, M + 4, y + 4.5);
+      font("normal", 8.5);
+      doc.textWithLink(clean(data.labels.taxiBook) + " >", M + 4, y + 4.5 + taxi.length * lh(9.5) + 0.5, { url: data.taxi.url });
+      y += taxi.length * lh(9.5) + 14;
+    }
+
     // Consejos
     ensure(16);
     color(C.text); font("bold", 12); doc.text(clean(data.labels.tips), M, y);
