@@ -19,9 +19,12 @@
         <span>Ruta Perú</span>
         <small data-i18n="tagline"></small>
       </a>
+      <div class="top-actions">
+      <button type="button" class="admin-btn" id="btn-admin" hidden>⚙ Admin</button>
       <div class="lang" role="group" aria-label="Idioma / Language">
         <button type="button" data-lang="es">ES</button>
         <button type="button" data-lang="en">EN</button>
+      </div>
       </div>
     </div>
   </header>
@@ -145,6 +148,28 @@
         <p class="muted small" data-i18n="disclaimer"></p>
       </div>
     </section>
+    <section class="wrap admin" id="admin" hidden>
+      <div class="admin-head">
+        <div>
+          <h2>Panel de administración</h2>
+          <p class="muted" id="admin-mode"></p>
+        </div>
+        <button type="button" class="btn" id="admin-close">Volver a la página</button>
+      </div>
+      <div class="admin-bar">
+        <div class="admin-tabs" role="tablist">
+          <button type="button" role="tab" data-admin-tab="attractions">Atracciones</button>
+          <button type="button" role="tab" data-admin-tab="restaurants">Restaurantes</button>
+          <button type="button" role="tab" data-admin-tab="settings">Ajustes</button>
+        </div>
+        <div class="admin-search">
+          <input type="search" id="admin-search" placeholder="Buscar por nombre o zona" aria-label="Buscar">
+        </div>
+      </div>
+      <div id="admin-list"></div>
+      <div id="admin-editor" hidden></div>
+      <div class="admin-toast" id="admin-toast" role="status" aria-live="polite"></div>
+    </section>
   </main>
 
   <footer class="footer">
@@ -154,6 +179,8 @@
   <script src="js/i18n.js"></script>
   <script src="js/data/lima.js"></script>
   <script src="js/planner.js"></script>
+  <script src="js/store.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/admin.js"></script>
 </body>
 </html>

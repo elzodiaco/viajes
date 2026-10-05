@@ -7,7 +7,15 @@ Página web para turistas que llegan al Perú. Eligen la ciudad (fase 1: **Lima*
 - Traslados estimados (a pie o en taxi/app) considerando el tráfico de Lima.
 - Logística de llegada (migración, traslado, check-in) y de salida (recoger equipaje, salida al aeropuerto con 3 h de anticipación en vuelos internacionales y 2 h en nacionales).
 - Preferencias: intereses, zona de hospedaje, ritmo y presupuesto.
+- Precios en soles y en dólares (tipo de cambio editable).
 - Gasto estimado por día y total, enlaces a Google Maps, impresión/PDF y versión en español e inglés.
+
+## Panel de administración
+
+Permite editar precios, horarios por día, duración, importancia, textos (español/inglés), ocultar lugares, y ajustes generales (tipo de cambio y tarifa de taxi).
+
+- **Publicada en Claude:** el botón "Admin" solo aparece para el dueño o Editores; los cambios se guardan en la base de datos compartida y todos los visitantes los ven.
+- **Como sitio estático:** abre `index.html#admin`. Los cambios se guardan solo en ese navegador (útil para probar); para cambios permanentes edita `js/data/lima.js`.
 
 ## Cómo usarla
 
@@ -22,6 +30,8 @@ css/styles.css      Estilos (modo claro/oscuro, responsive, impresión)
 js/i18n.js          Textos en español e inglés
 js/data/lima.js     Atracciones, restaurantes, zonas y consejos de Lima
 js/planner.js       Motor de reglas que arma el itinerario
+js/store.js         Cambios del administrador (base compartida o localStorage)
+js/admin.js         Panel de administración
 js/app.js           Interfaz: formulario, render y eventos
 ```
 

@@ -44,8 +44,18 @@
     });
   }
 
+  function soles(n) {
+    return "S/ " + Math.round(n).toLocaleString(lang === "es" ? "es-PE" : "en-US");
+  }
+
+  function dollars(n) {
+    var usd = n / city().settings.exchangeRate;
+    return "US$ " + (usd < 10 ? usd.toFixed(1) : Math.round(usd).toLocaleString("en-US"));
+  }
+
+  // Precio en soles con su equivalente en dólares.
   function money(n) {
-    return n > 0 ? "S/ " + Math.round(n).toLocaleString(lang === "es" ? "es-PE" : "en-US") : t("free");
+    return n > 0 ? soles(n) + " · " + dollars(n) : t("free");
   }
 
   function duration(min) {
@@ -55,7 +65,7 @@
   }
 
   function city() {
-    return CITIES[form.elements.city.value] || CITIES.lima;
+    return DataStore.effective(CITIES[form.elements.city.value] || CITIES.lima);
   }
 
   // ---------------------------------------------------------------- i18n UI
@@ -254,8 +264,10 @@
     }).join("");
 
     document.getElementById("total").innerHTML =
-      "<div><small>" + esc(t("estTotal")) + "</small><strong>" + money(res.total) + "</strong></div>" +
-      '<p class="muted small">' + esc(t("estNote")) + "</p>";
+      "<div><small>" + esc(t("estTotal")) + "</small><strong>" + soles(res.total) +
+      ' <span class="usd">' + dollars(res.total) + "</span></strong></div>" +
+      '<p class="muted small">' + esc(t("estNote")) + " " +
+      esc(t("rate", { rate: c.settings.exchangeRate.toFixed(2) })) + "</p>";
 
     document.getElementById("tips").innerHTML = c.tips.map(function (tip) {
       return "<li>" + esc(L(tip)) + "</li>";
@@ -323,9 +335,8 @@
   document.getElementById("btn-edit").addEventListener("click", function () {
     form.scrollIntoView({ behavior: "smooth", block: "start" });
   });
-  document.getElementById("btn-print").addEventListener("click", function () {
-    window.print();
-  });
+  var printBtn = document.getElementById("btn-print");
+  if (printBtn) printBtn.addEventListener("click", function () { window.print(); });
 
   // ------------------------------------------------------------------ init
   form.elements.arrivalDate.value = todayISO();
@@ -337,4 +348,15 @@
     fillForm(saved);
   }
   updateEarlyHint();
+
+  // Cuando el administrador cambia precios u horarios, se recalcula el plan.
+  DataStore.onChange(function () {
+    if (lastPrefs) {
+      var res = Planner.plan(city(), lastPrefs);
+      if (!res.error) { lastResult = res; render(res, lastPrefs); }
+    }
+  });
+  DataStore.init();
+
+  window.App = { lang: function () { return lang; } };
 })();

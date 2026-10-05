@@ -14,8 +14,6 @@
     intense:  { start: 8 * 60,      end: 23 * 60 + 30, maxActivities: 7, gap: 5,  mealExtra: -15 }
   };
 
-  // Gasto en taxi por aplicativo por minuto de viaje (aprox.).
-  var TAXI_BASE = 8, TAXI_PER_MIN = 0.6;
 
   function toMin(hhmm) {
     var p = hhmm.split(":");
@@ -46,9 +44,6 @@
     return { min: Math.round(min / 5) * 5, mode: "taxi", km: d };
   }
 
-  function taxiCost(t) {
-    return t.mode === "taxi" ? Math.round(TAXI_BASE + t.min * TAXI_PER_MIN) : 0;
-  }
 
   // Generador pseudoaleatorio con semilla para que "regenerar" dé variaciones
   // reproducibles.
@@ -100,6 +95,13 @@
    */
   function plan(city, prefs) {
     var pace = PACES[prefs.pace] || PACES.moderate;
+    // Tarifa aproximada de taxi por aplicativo (editable en el panel admin).
+    var settings = city.settings || {};
+    var taxiBase = settings.taxiBase != null ? settings.taxiBase : 8;
+    var taxiPerMin = settings.taxiPerMin != null ? settings.taxiPerMin : 0.6;
+    function taxiCost(t) {
+      return t.mode === "taxi" ? Math.round(taxiBase + t.min * taxiPerMin) : 0;
+    }
     var rand = rng(prefs.seed || 1);
     var zone = city.zones[prefs.hotelZone] || city.zones.miraflores;
     var hotel = { lat: zone.lat, lng: zone.lng, zone: prefs.hotelZone };
