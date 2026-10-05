@@ -1,18 +1,20 @@
 # Ruta Perú · Planificador de itinerarios
 
-Página web para turistas que llegan al Perú. Eligen la ciudad (fase 1: **Lima**), la fecha y hora de llegada, el número de días y la hora de su vuelo de salida, y la página arma un itinerario día por día con:
+Página web para turistas que llegan al Perú. Empieza con un cuestionario corto (con quién viaja, si es su primera vez, intereses, ritmo y presupuesto, comida y si quiere un city tour guiado) y luego pide la ciudad (fase 1: **Lima**), la fecha y hora de llegada, el número de días y la hora del vuelo de salida. Con eso arma un itinerario personalizado día por día con:
 
 - Horarios de cada actividad, respetando los días y horas de apertura (por ejemplo, museos cerrados los lunes).
 - Almuerzo y cena en restaurantes cercanos según el presupuesto.
 - Traslados estimados (a pie o en taxi/app) considerando el tráfico de Lima.
 - Logística de llegada (migración, traslado, check-in) y de salida (recoger equipaje, salida al aeropuerto con 3 h de anticipación en vuelos internacionales y 2 h en nacionales).
 - Preferencias: intereses, zona de hospedaje, ritmo y presupuesto.
+- Personalización: lugares para familias con niños o para parejas, joyas menos turísticas si ya conoce Lima, y sin cebicherías si evita pescados y mariscos.
+- Tour recomendado: *Lima City Tour Plus* de Lima VIP Travel (US$ 38, 4 h). Si el turista lo acepta, se agenda en el primer día que encaje con sus vuelos y sus paradas no se repiten en el resto del plan. Incluye botón para reservar.
 - Precios en soles y en dólares (tipo de cambio editable).
 - Gasto estimado por día y total, enlaces a Google Maps, descarga del itinerario en PDF y versión en español e inglés.
 
 ## Panel de administración
 
-Permite editar precios, horarios por día, duración, importancia, textos (español/inglés), ocultar lugares, y ajustes generales (tipo de cambio y tarifa de taxi).
+Permite editar precios, horarios por día, duración, importancia, textos (español/inglés), ocultar lugares, los tours (precio en dólares, horas de salida, enlace para reservar) y ajustes generales (tipo de cambio y tarifa de taxi).
 
 El panel no aparece en la página pública: se abre con un enlace aparte que termina en `#admin`.
 

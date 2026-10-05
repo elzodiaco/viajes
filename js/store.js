@@ -11,7 +11,7 @@
   var LOCAL_KEY = "rutaperu.overrides";
   var DEFAULT_SETTINGS = { exchangeRate: 3.75, taxiBase: 8, taxiPerMin: 0.6 };
 
-  var overrides = { attractions: {}, restaurants: {}, settings: {} };
+  var overrides = { attractions: {}, restaurants: {}, tours: {}, settings: {} };
   var listeners = [];
   var db = null;
   var mode = "local";
@@ -28,6 +28,7 @@
       if (raw) {
         overrides.attractions = raw.attractions || {};
         overrides.restaurants = raw.restaurants || {};
+        overrides.tours = raw.tours || {};
         overrides.settings = raw.settings || {};
       }
     } catch (e) { /* sin almacenamiento: se usan los datos base */ }
@@ -56,13 +57,14 @@
       return Promise.resolve();
     }
     // Dentro de Claude solo se usa la base compartida.
-    overrides = { attractions: {}, restaurants: {}, settings: {} };
+    overrides = { attractions: {}, restaurants: {}, tours: {}, settings: {} };
     return claude.use("db").then(function (handle) {
       if (!handle) return finish();
       db = handle;
       mode = "db";
       subscribeCollection("attractions");
       subscribeCollection("restaurants");
+      subscribeCollection("tours");
       db.doc("config/settings").onSnapshot(function (snap) {
         overrides.settings = snap.exists ? snap.data() : {};
         emit();
@@ -125,6 +127,8 @@
       .filter(function (a) { return includeHidden || !a.hidden; });
     c.restaurants = base.restaurants.map(function (r) { return apply(r, overrides.restaurants[r.id]); })
       .filter(function (r) { return includeHidden || !r.hidden; });
+    c.tours = (base.tours || []).map(function (x) { return apply(x, overrides.tours[x.id]); })
+      .filter(function (x) { return includeHidden || !x.hidden; });
     return c;
   }
 

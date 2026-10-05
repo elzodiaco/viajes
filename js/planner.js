@@ -68,7 +68,17 @@
     if (a.night && prefs.interests.indexOf("nightlife") === -1) s -= 20;
     if (prefs.budget === "low" && a.cost >= 100) s -= 8;
     if (prefs.budget === "mid" && a.cost >= 200) s -= 3;
+    // Respuestas del cuestionario.
+    if (prefs.travelWith === "family") s += a.kids ? 4 : 0;
+    if (prefs.travelWith === "couple") s += a.romantic ? 4 : 0;
+    if (prefs.firstTime === false) s += (6 - a.priority) * 0.8; // menos clásicos, más joyas escondidas
     return s;
+  }
+
+  function restaurantAllowed(r, prefs) {
+    if (prefs.avoidSeafood && r.seafood) return false;
+    if (prefs.travelWith === "family" && r.adultsOnly) return false;
+    return restaurantFits(r, prefs.budget);
   }
 
   function restaurantFits(r, budget) {
@@ -90,7 +100,9 @@
    * prefs = {
    *   arrivalDate: "YYYY-MM-DD", arrivalTime: "HH:MM", days: n,
    *   departureTime: "HH:MM", flightType: "intl" | "dom",
-   *   hotelZone, pace, budget, interests: [], seed
+   *   hotelZone, pace, budget, interests: [], seed,
+   *   travelWith: "solo" | "couple" | "friends" | "family",
+   *   firstTime: bool, avoidSeafood: bool, wantsTour: bool
    * }
    */
   function plan(city, prefs) {
@@ -165,6 +177,33 @@
     // Tiempo mínimo para regresar al hotel antes de ir al aeropuerto.
     var hotelDeadline = pickup;
 
+    // --- Tour guiado -------------------------------------------------------
+    // Se reserva un bloque fijo el primer día completo que encaje con los
+    // vuelos; sus paradas no se repiten en el resto del itinerario.
+    var tourPlan = null;
+    var tour = prefs.wantsTour ? (city.tours || []).filter(function (x) { return !x.hidden; })[0] : null;
+    if (tour) {
+      var rate = settings.exchangeRate || 3.75;
+      var order = [];
+      for (d = 1; d < nDays; d++) order.push(d);
+      order.push(0);
+      outer:
+      for (var i = 0; i < order.length; i++) {
+        var base0 = order[i] * DAY;
+        for (var j = 0; j < tour.departures.length; j++) {
+          var ts = base0 + toMin(tour.departures[j]);
+          var te = ts + tour.duration;
+          var restUntil = order[i] > 0 && readyAbs > base0 && readyAbs < base0 + 9 * 60 ? base0 + 11 * 60 : 0;
+          if (ts < readyAbs + 15 || ts < restUntil) continue;
+          if (te + travel(tour.end, hotel).min > hotelDeadline) continue;
+          tourPlan = { day: order[i], start: ts, end: te, tour: tour, cost: Math.round(tour.priceUsd * rate) };
+          break outer;
+        }
+      }
+      if (tourPlan) tour.covers.forEach(function (id) { used[id] = true; });
+      else warnings.push("tourNoFit");
+    }
+
     for (d = 0; d < nDays; d++) {
       planDay(days[d], d * DAY);
     }
@@ -175,6 +214,8 @@
         // Llegó de madrugada: le damos unas horas de descanso.
         start = Math.max(start, base + 11 * 60);
       }
+      var block = tourPlan && tourPlan.day === day.index ? { start: tourPlan.start, end: tourPlan.end, done: false } : null;
+      if (block) start = Math.max(Math.min(start, block.start - 10), readyAbs);
       var end = Math.min(base + pace.end, hotelDeadline);
       if (end - start < 45) return;
 
@@ -186,6 +227,11 @@
       // El día de llegada se arma más ligero por el cansancio del vuelo.
       var maxActivities = day.index === 0 ? Math.max(2, pace.maxActivities - 2) : pace.maxActivities;
       var lunchStart = base + 12 * 60 + 30, lunchLatest = base + 14 * 60 + 30;
+      // Con tour por la tarde se almuerza antes de que pasen a recogerte.
+      if (block && block.start >= base + 13 * 60 && block.start < lunchLatest + 60) {
+        lunchStart = block.start - 135;
+        lunchLatest = lunchStart + 20;
+      }
       var dinnerStart = base + 19 * 60 + 30, dinnerLatest = base + 21 * 60 + 30;
       var lunchDone = !(start <= lunchLatest && end >= base + 13 * 60 + 30);
       var dinnerDone = !(start <= dinnerLatest && end >= base + 20 * 60 + 30);
@@ -193,7 +239,16 @@
       var guard = 0;
 
       // La cena puede terminar después del horario del ritmo elegido.
-      while ((t < end || (!dinnerDone && t <= dinnerLatest)) && guard++ < 40) {
+      // Hora límite para estar de vuelta en el hotel (tour o aeropuerto).
+      function limit() {
+        return block && !block.done ? block.start - 10 : hotelDeadline;
+      }
+
+      while ((t < end || (!dinnerDone && t <= dinnerLatest) || (block && !block.done)) && guard++ < 40) {
+        if (block && !block.done && t >= block.start - 10 - travel(loc, hotel).min) {
+          doTour();
+          continue;
+        }
         if (!lunchDone && t >= lunchStart) {
           lunchDone = true;
           if (addMeal("lunch")) continue;
@@ -224,6 +279,10 @@
         var next = null;
         if (!lunchDone && t < lunchStart) next = lunchStart;
         else if (!dinnerDone && t < dinnerStart) next = dinnerStart;
+        if (block && !block.done) {
+          var trigger = block.start - 10 - travel(loc, hotel).min;
+          if (next === null || trigger < next) next = trigger;
+        }
         if (next === null) {
           // Último día: aprovecha el rato que queda antes de ir al aeropuerto.
           var home = travel(loc, hotel).min;
@@ -271,7 +330,7 @@
           if (a.night && e > end + 60) return;
 
           // Debe poder volver al hotel a tiempo para ir al aeropuerto.
-          if (e + travel(a, hotel).min > hotelDeadline) return;
+          if (e + travel(a, hotel).min > limit()) return;
 
           // No retrasar demasiado las comidas.
           if (!lunchDone && e > lunchLatest - 15 && !a.replacesMeal) return;
@@ -300,13 +359,13 @@
         var best = null;
         city.restaurants.forEach(function (r) {
           if (usedRest[r.id] || r.meals.indexOf(kind) === -1) return;
-          if (!restaurantFits(r, prefs.budget)) return;
+          if (!restaurantAllowed(r, prefs)) return;
           if (r.id === "airport-food" && prefs.hotelZone !== "callao" && !(isLast && kind === "dinner")) return;
           var tr = travel(loc, r);
           if (tr.min > 40) return;
           var s = t + tr.min;
           var duration = (r.duration || 90) + pace.mealExtra;
-          if (s + duration + travel(r, hotel).min > hotelDeadline) return;
+          if (s + duration + travel(r, hotel).min > limit()) return;
           var score = restaurantScore(r, prefs) - tr.min * 0.35 + rand() * 3;
           if (!best || score > best.score) best = { r: r, start: s, travel: tr, score: score, duration: duration };
         });
@@ -320,6 +379,23 @@
         t = lastEnd + pace.gap;
         loc = best.r;
         return true;
+      }
+
+      // El tour recoge en el hotel y termina en el Centro Histórico.
+      function doTour() {
+        block.done = true;
+        var back = travel(loc, hotel);
+        if (loc !== hotel && back.mode !== "none") {
+          push({ type: "return", start: lastEnd, end: lastEnd + back.min, travel: back, place: hotel }, day);
+        }
+        push({
+          type: "tour", item: tourPlan.tour, start: block.start, end: block.end,
+          cost: tourPlan.cost, place: tourPlan.tour.end
+        }, day);
+        loc = tourPlan.tour.end;
+        lastEnd = block.end;
+        t = block.end + pace.gap;
+        count += 2;
       }
 
       function addFree(from, to, where, tr) {

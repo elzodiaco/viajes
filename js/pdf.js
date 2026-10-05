@@ -42,6 +42,11 @@
     font("bold", 19); doc.text(clean(data.title), M, 21);
     font("normal", 10); doc.text(clean(data.summary), M, 28);
     y = 44;
+    if (data.persona) {
+      var persona = lines(data.persona, PAGE_W - 2 * M, "italic", 10);
+      color(C.text); doc.text(persona, M, y);
+      y += persona.length * lh(10) + 4;
+    }
 
     data.warnings.forEach(function (w) {
       var l = lines(w, PAGE_W - 2 * M - 6, "normal", 9);
@@ -75,7 +80,7 @@
         if (ev.travelSelf) meta.push(ev.travelSelf.text);
         var metaLines = meta.length ? lines(meta.join("  ·  "), CONTENT_W, "normal", 8.5) : [];
         var h = (ev.travelBefore ? 5 : 0) + title.length * lh(10.5) + desc.length * lh(8.8) +
-          (tip.length ? tip.length * lh(8.5) + 3 : 0) + metaLines.length * lh(8.5) + (ev.mapUrl ? 4.5 : 0) + 5;
+          (tip.length ? tip.length * lh(8.5) + 3 : 0) + metaLines.length * lh(8.5) + (ev.mapUrl ? 4.5 : 0) + (ev.bookUrl ? 4.5 : 0) + 5;
         ensure(h);
 
         if (ev.travelBefore) {
@@ -88,7 +93,7 @@
         color(ev.logistic ? C.teal : C.text); font("bold", 9.5);
         doc.text(clean(ev.span), M, y);
         // Marca de la línea de tiempo
-        var mark = ev.type === "activity" ? C.accent : ev.type === "meal" ? C.gold : C.line;
+        var mark = ev.type === "activity" || ev.type === "tour" ? C.accent : ev.type === "meal" ? C.gold : C.line;
         doc.setFillColor(mark[0], mark[1], mark[2]);
         doc.circle(CONTENT_X - 3, y - 1.2, 1.1, "F");
 
@@ -117,6 +122,11 @@
         if (ev.mapUrl) {
           color(C.teal); font("normal", 8.5);
           doc.textWithLink(clean(data.labels.map) + " >", CONTENT_X, y, { url: ev.mapUrl });
+          y += 4.5;
+        }
+        if (ev.bookUrl) {
+          color(C.accent); font("bold", 8.5);
+          doc.textWithLink(clean(data.labels.book) + " >", CONTENT_X, y, { url: ev.bookUrl });
           y += 4.5;
         }
         y = Math.max(y, top + 6) + 3;

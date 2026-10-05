@@ -54,7 +54,7 @@
 
     attractions: [
       {
-        id: "plaza-mayor", zone: "centro", lat: -12.0464, lng: -77.0300,
+        id: "plaza-mayor", kids: true, zone: "centro", lat: -12.0464, lng: -77.0300,
         name: { es: "Plaza Mayor y Palacio de Gobierno", en: "Plaza Mayor & Government Palace" },
         desc: { es: "El corazón de la Lima colonial, Patrimonio de la Humanidad. Rodeada por la Catedral, el Palacio de Gobierno y la Municipalidad.", en: "The heart of colonial Lima, a UNESCO World Heritage site, framed by the Cathedral, Government Palace and City Hall." },
         tip: { es: "El cambio de guardia suele ser cerca del mediodía; llega unos minutos antes.", en: "The changing of the guard usually happens around noon; arrive a few minutes early." },
@@ -113,7 +113,7 @@
         hours: week("10:00", "19:00", [1], { 6: ["10:00", "17:00"] })
       },
       {
-        id: "circuito-magico", zone: "centro", lat: -12.0702, lng: -77.0335,
+        id: "circuito-magico", kids: true, romantic: true, zone: "centro", lat: -12.0702, lng: -77.0335,
         name: { es: "Circuito Mágico del Agua", en: "Magic Water Circuit" },
         desc: { es: "Parque con fuentes iluminadas y un espectáculo de luces, música y agua por la noche.", en: "A park of illuminated fountains with a nighttime show of lights, music and water." },
         tip: { es: "Los espectáculos principales son al anochecer. Lleva ropa de cambio si te mojas en el túnel.", en: "The main shows start after dark. Bring spare clothes if you'll walk through the water tunnel." },
@@ -121,28 +121,28 @@
         hours: week("15:00", "22:30", [1, 2])
       },
       {
-        id: "larco", zone: "pueblolibre", lat: -12.0727, lng: -77.0705,
+        id: "larco", kids: true, zone: "pueblolibre", lat: -12.0727, lng: -77.0705,
         name: { es: "Museo Larco", en: "Larco Museum" },
         desc: { es: "La mejor colección de arte precolombino del Perú, en una casona virreinal con jardines. Incluye la famosa galería erótica.", en: "Peru's finest pre-Columbian art collection in a colonial mansion with gardens, including the famous erotic gallery." },
         interests: ["history", "art"], priority: 9, duration: 120, cost: 35,
         hours: week("09:00", "22:00")
       },
       {
-        id: "huaca-pucllana", zone: "miraflores", lat: -12.1109, lng: -77.0337,
+        id: "huaca-pucllana", kids: true, zone: "miraflores", lat: -12.1109, lng: -77.0337,
         name: { es: "Huaca Pucllana", en: "Huaca Pucllana" },
         desc: { es: "Pirámide de adobe de 1,500 años de antigüedad en medio de Miraflores. Visita guiada.", en: "A 1,500-year-old adobe pyramid in the middle of Miraflores. Guided tour." },
         interests: ["history"], priority: 8, duration: 60, cost: 15,
         hours: week("09:00", "17:00", [2])
       },
       {
-        id: "malecon", zone: "miraflores", lat: -12.1278, lng: -77.0339,
+        id: "malecon", kids: true, romantic: true, zone: "miraflores", lat: -12.1278, lng: -77.0339,
         name: { es: "Malecón de Miraflores y Parque del Amor", en: "Miraflores Boardwalk & Love Park" },
         desc: { es: "Paseo sobre los acantilados frente al Pacífico. Ideal al atardecer.", en: "A cliff-top walk above the Pacific. Best at sunset." },
         interests: ["nature", "beach"], priority: 9, duration: 75, cost: 0, sunset: true,
         hours: week("06:00", "22:00")
       },
       {
-        id: "larcomar", zone: "miraflores", lat: -12.1318, lng: -77.0303,
+        id: "larcomar", kids: true, zone: "miraflores", lat: -12.1318, lng: -77.0303,
         name: { es: "Larcomar", en: "Larcomar" },
         desc: { es: "Centro comercial construido en el acantilado, con vista al mar, tiendas y restaurantes.", en: "A shopping mall built into the cliff, with ocean views, shops and restaurants." },
         interests: ["shopping"], priority: 4, duration: 60, cost: 0,
@@ -165,7 +165,7 @@
         hours: week("10:00", "17:00")
       },
       {
-        id: "surf", zone: "miraflores", lat: -12.1250, lng: -77.0390,
+        id: "surf", kids: true, zone: "miraflores", lat: -12.1250, lng: -77.0390,
         name: { es: "Clase de surf en la Costa Verde", en: "Surf lesson at the Costa Verde" },
         desc: { es: "Clase para principiantes en las playas Makaha o Waikiki, con tabla y traje incluidos.", en: "A beginner lesson at Makaha or Waikiki beach, board and wetsuit included." },
         interests: ["beach", "adventure"], priority: 4, duration: 120, cost: 120,
@@ -179,7 +179,7 @@
         hours: week("08:00", "16:00")
       },
       {
-        id: "clase-cocina", zone: "miraflores", lat: -12.1200, lng: -77.0310,
+        id: "clase-cocina", kids: true, zone: "miraflores", lat: -12.1200, lng: -77.0310,
         name: { es: "Clase de cocina peruana y pisco sour", en: "Peruvian cooking & pisco sour class" },
         desc: { es: "Aprende a preparar ceviche, lomo saltado y pisco sour; muchas incluyen visita al mercado.", en: "Learn to make ceviche, lomo saltado and pisco sour; many include a market visit." },
         tip: { es: "Reserva con uno o dos días de anticipación.", en: "Book one or two days in advance." },
@@ -187,7 +187,7 @@
         hours: week("10:00", "18:00")
       },
       {
-        id: "barranco-puente", zone: "barranco", lat: -12.1497, lng: -77.0222,
+        id: "barranco-puente", romantic: true, zone: "barranco", lat: -12.1497, lng: -77.0222,
         name: { es: "Puente de los Suspiros y Bajada de Baños", en: "Bridge of Sighs & Bajada de Baños" },
         desc: { es: "El rincón más romántico de Barranco: casonas coloridas, murales y la bajada al mar.", en: "Barranco's most romantic corner: colorful mansions, murals and the path down to the sea." },
         interests: ["art", "history", "nightlife"], priority: 8, duration: 75, cost: 0, sunset: true,
@@ -215,7 +215,7 @@
         hours: week("09:00", "17:00", [1])
       },
       {
-        id: "olivar", zone: "sanisidro", lat: -12.0985, lng: -77.0350,
+        id: "olivar", kids: true, zone: "sanisidro", lat: -12.0985, lng: -77.0350,
         name: { es: "Bosque El Olivar", en: "El Olivar Park" },
         desc: { es: "Olivar centenario, con árboles traídos en la época colonial. Un respiro verde en la ciudad.", en: "A centuries-old olive grove dating to colonial times; a green escape in the city." },
         interests: ["nature"], priority: 4, duration: 45, cost: 0,
@@ -237,7 +237,7 @@
         hours: week("10:00", "18:00")
       },
       {
-        id: "palomino", zone: "callao", lat: -12.0647, lng: -77.1528,
+        id: "palomino", kids: true, zone: "callao", lat: -12.0647, lng: -77.1528,
         name: { es: "Islas Palomino: nado con lobos marinos", en: "Palomino Islands: swim with sea lions" },
         desc: { es: "Paseo en bote desde el Callao para nadar con lobos marinos y ver aves guaneras.", en: "A boat trip from Callao to swim with sea lions and see seabirds." },
         tip: { es: "Reserva el tour con anticipación; el mar puede estar movido.", en: "Book the tour in advance; the sea can be rough." },
@@ -272,27 +272,27 @@
 
     /* price: 1 = económico, 2 = medio, 3 = alto. cost: gasto aprox. por persona (S/). */
     restaurants: [
-      { id: "central", duration: 180, name: "Central", zone: "barranco", lat: -12.1487, lng: -77.0218, price: 3, cost: 1500, meals: ["lunch", "dinner"], famous: true, reservation: true,
+      { id: "central", adultsOnly: true, duration: 180, name: "Central", zone: "barranco", lat: -12.1487, lng: -77.0218, price: 3, cost: 1500, meals: ["lunch", "dinner"], famous: true, reservation: true,
         desc: { es: "Menú degustación de Virgilio Martínez que recorre los ecosistemas del Perú.", en: "Virgilio Martínez's tasting menu journeying through Peru's ecosystems." } },
-      { id: "maido", duration: 150, name: "Maido", zone: "miraflores", lat: -12.1220, lng: -77.0300, price: 3, cost: 1100, meals: ["lunch", "dinner"], famous: true, reservation: true,
+      { id: "maido", adultsOnly: true, duration: 150, name: "Maido", zone: "miraflores", lat: -12.1220, lng: -77.0300, price: 3, cost: 1100, meals: ["lunch", "dinner"], famous: true, reservation: true,
         desc: { es: "Cocina nikkei (peruano-japonesa) de Mitsuharu Tsumura.", en: "Mitsuharu Tsumura's Nikkei (Peruvian-Japanese) cuisine." } },
       { id: "astrid", duration: 150, name: "Astrid y Gastón", zone: "sanisidro", lat: -12.0960, lng: -77.0390, price: 3, cost: 450, meals: ["lunch", "dinner"], famous: true, reservation: true,
         desc: { es: "El restaurante que inició el boom gastronómico peruano, en una casa hacienda.", en: "The restaurant that sparked Peru's food boom, in a colonial hacienda house." } },
-      { id: "rafael", duration: 120, name: "Rafael", zone: "miraflores", lat: -12.1205, lng: -77.0355, price: 3, cost: 350, meals: ["dinner"], reservation: true,
+      { id: "rafael", adultsOnly: true, duration: 120, name: "Rafael", zone: "miraflores", lat: -12.1205, lng: -77.0355, price: 3, cost: 350, meals: ["dinner"], reservation: true,
         desc: { es: "Cocina peruana contemporánea con influencias mediterráneas.", en: "Contemporary Peruvian cuisine with Mediterranean touches." } },
       { id: "pucllana-rest", name: "Restaurante Huaca Pucllana", zone: "miraflores", lat: -12.1105, lng: -77.0330, price: 3, cost: 180, meals: ["lunch", "dinner"], reservation: true,
         desc: { es: "Cena con vista a la pirámide iluminada.", en: "Dinner overlooking the illuminated pyramid." } },
-      { id: "la-mar", name: "La Mar Cebichería", zone: "miraflores", lat: -12.1100, lng: -77.0450, price: 2, cost: 140, meals: ["lunch"], famous: true,
+      { id: "la-mar", seafood: true, name: "La Mar Cebichería", zone: "miraflores", lat: -12.1100, lng: -77.0450, price: 2, cost: 140, meals: ["lunch"], famous: true,
         desc: { es: "La cebichería de Gastón Acurio; los mejores ceviches y tiraditos.", en: "Gastón Acurio's cevichería; top ceviches and tiraditos." } },
       { id: "isolina", name: "Isolina", zone: "barranco", lat: -12.1478, lng: -77.0205, price: 2, cost: 110, meals: ["lunch", "dinner"], famous: true,
         desc: { es: "Taberna criolla con porciones generosas para compartir.", en: "A Creole tavern with generous sharing plates." } },
-      { id: "canta-rana", name: "Canta Rana", zone: "barranco", lat: -12.1480, lng: -77.0210, price: 2, cost: 80, meals: ["lunch"],
+      { id: "canta-rana", seafood: true, name: "Canta Rana", zone: "barranco", lat: -12.1480, lng: -77.0210, price: 2, cost: 80, meals: ["lunch"],
         desc: { es: "Cevichería de barrio con mucho ambiente y fotos de fútbol.", en: "A lively neighborhood cevichería covered in football photos." } },
-      { id: "punto-azul", name: "Punto Azul", zone: "miraflores", lat: -12.1215, lng: -77.0300, price: 2, cost: 70, meals: ["lunch"],
+      { id: "punto-azul", seafood: true, name: "Punto Azul", zone: "miraflores", lat: -12.1215, lng: -77.0300, price: 2, cost: 70, meals: ["lunch"],
         desc: { es: "Ceviches abundantes y jaleas a buen precio. Llega temprano, se llena.", en: "Generous ceviches and fried seafood at fair prices. Arrive early, it fills up." } },
       { id: "panchita", name: "Panchita", zone: "miraflores", lat: -12.1190, lng: -77.0340, price: 2, cost: 110, meals: ["lunch", "dinner"],
         desc: { es: "Anticuchos, carnes a la brasa y cocina criolla.", en: "Anticuchos, grilled meats and Creole classics." } },
-      { id: "barra-chalaca", name: "Barra Chalaca", zone: "miraflores", lat: -12.1160, lng: -77.0420, price: 2, cost: 80, meals: ["lunch", "dinner"],
+      { id: "barra-chalaca", seafood: true, name: "Barra Chalaca", zone: "miraflores", lat: -12.1160, lng: -77.0420, price: 2, cost: 80, meals: ["lunch", "dinner"],
         desc: { es: "Barra marina informal con ceviches, causas y chicharrón de pescado.", en: "A casual seafood bar for ceviche, causa and fried fish." } },
       { id: "la-lucha", name: "La Lucha Sanguchería", zone: "miraflores", lat: -12.1213, lng: -77.0302, price: 1, cost: 35, meals: ["lunch", "dinner"],
         desc: { es: "Sánguches criollos de chicharrón y pavo, y jugos naturales.", en: "Creole pork and turkey sandwiches with fresh juices." } },
@@ -314,16 +314,52 @@
         desc: { es: "Taberna de 1880 con pisco propio, butifarras y música criolla.", en: "An 1880 tavern with house pisco, butifarra sandwiches and Creole music." } },
       { id: "cafe-larco", name: "Café del Museo Larco", zone: "pueblolibre", lat: -12.0729, lng: -77.0702, price: 2, cost: 110, meals: ["lunch", "dinner"],
         desc: { es: "Cocina peruana en la terraza florida del museo.", en: "Peruvian cuisine on the museum's flower-filled terrace." } },
-      { id: "surquillo-cevicheria", name: { es: "Cevicherías del Mercado de Surquillo", en: "Surquillo Market ceviche stalls" }, zone: "surquillo", lat: -12.1124, lng: -77.0270, price: 1, cost: 35, meals: ["lunch"],
+      { id: "surquillo-cevicheria", seafood: true, name: { es: "Cevicherías del Mercado de Surquillo", en: "Surquillo Market ceviche stalls" }, zone: "surquillo", lat: -12.1124, lng: -77.0270, price: 1, cost: 35, meals: ["lunch"],
         desc: { es: "Ceviche fresco y barato como lo comen los limeños.", en: "Fresh, cheap ceviche the way locals eat it." } },
-      { id: "chorrillos-muelle", name: { es: "Cevicherías del muelle de Chorrillos", en: "Chorrillos wharf seafood stalls" }, zone: "chorrillos", lat: -12.1655, lng: -77.0275, price: 1, cost: 40, meals: ["lunch"],
+      { id: "chorrillos-muelle", seafood: true, name: { es: "Cevicherías del muelle de Chorrillos", en: "Chorrillos wharf seafood stalls" }, zone: "chorrillos", lat: -12.1655, lng: -77.0275, price: 1, cost: 40, meals: ["lunch"],
         desc: { es: "Pescado del día recién llegado del mar.", en: "Catch of the day straight off the boats." } },
-      { id: "la-punta-rest", name: { es: "Cevicherías de La Punta", en: "La Punta seafood restaurants" }, zone: "callao", lat: -12.0715, lng: -77.1620, price: 2, cost: 80, meals: ["lunch"],
+      { id: "la-punta-rest", seafood: true, name: { es: "Cevicherías de La Punta", en: "La Punta seafood restaurants" }, zone: "callao", lat: -12.0715, lng: -77.1620, price: 2, cost: 80, meals: ["lunch"],
         desc: { es: "Comida marina chalaca con vista al mar.", en: "Callao-style seafood with ocean views." } },
       { id: "pachacamac-campestre", name: { es: "Restaurante campestre en Pachacamac", en: "Countryside restaurant in Pachacamac" }, zone: "pachacamac", lat: -12.2400, lng: -76.8700, price: 2, cost: 70, meals: ["lunch"],
         desc: { es: "Chicharrón, pachamanca y comida criolla al aire libre.", en: "Fried pork, pachamanca and Creole food outdoors." } },
       { id: "airport-food", name: { es: "Comida en el aeropuerto / hotel", en: "Airport or hotel dining" }, zone: "callao", lat: -12.0250, lng: -77.1100, price: 2, cost: 70, meals: ["lunch", "dinner"],
         desc: { es: "Opción práctica cerca del aeropuerto.", en: "A practical option near the airport." } }
+    ],
+
+    /*
+     * Tours que la página ofrece. El precio está en dólares (así lo vende el
+     * operador) y se convierte a soles con el tipo de cambio de los ajustes.
+     * "covers" son atracciones que el tour ya visita: no se repiten en el plan.
+     */
+    tours: [
+      {
+        id: "city-tour-plus", provider: "Lima VIP Travel",
+        name: { es: "Lima City Tour Plus + video con dron", en: "Lima City Tour Plus + drone video" },
+        desc: {
+          es: "Tour guiado de 4 horas por lo más icónico de Lima, con un video grabado con dron que te entregan editado de regalo.",
+          en: "A 4-hour guided tour of Lima's icons, with a drone video edited and given to you as a gift."
+        },
+        stops: [
+          { es: "Parque del Amor, frente al Pacífico (video con dron)", en: "Love Park, overlooking the Pacific (drone video)" },
+          { es: "Parque Intihuatana", en: "Intihuatana Park" },
+          { es: "Huaca Pucllana desde un mirador panorámico, con helado artesanal", en: "Huaca Pucllana from a panoramic viewpoint, with artisan ice cream" },
+          { es: "Bosque El Olivar de San Isidro", en: "El Olivar olive grove in San Isidro" },
+          { es: "Museo del Banco Central de Reserva (BCR)", en: "Central Reserve Bank Museum (BCR)" },
+          { es: "Plaza de Armas y Centro Histórico", en: "Plaza de Armas and the Historic Center" }
+        ],
+        includes: {
+          es: "Guía en español e inglés, transporte, entradas, video con dron y degustaciones. Grupos de hasta 13 personas.",
+          en: "English and Spanish-speaking guide, transport, entrance fees, drone video and tastings. Groups of up to 13."
+        },
+        tip: {
+          es: "El Museo del BCR cierra domingos y lunes; esos días el recorrido puede variar.",
+          en: "The BCR Museum is closed on Sundays and Mondays; the route may vary on those days."
+        },
+        priceUsd: 38, duration: 240, departures: ["09:00", "14:00"],
+        start: { lat: -12.1278, lng: -77.0339 }, end: { lat: -12.0464, lng: -77.0300, zone: "centro" },
+        covers: ["malecon", "huaca-pucllana", "olivar", "plaza-mayor"],
+        url: "https://limaviptravel.pe/en/tours/lima-city-tour-plus-2/"
+      }
     ],
 
     tips: [

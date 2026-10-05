@@ -38,7 +38,15 @@
     return n > 0 ? "S/ " + n + ' <span class="muted">· ' + usd(n) + "</span>" : '<span class="muted">Gratis</span>';
   }
 
-  function zoneName(c, z) { return c.zones[z] ? es(c.zones[z].name) : z; }
+  function zoneName(c, z) { return c.zones[z] ? es(c.zones[z].name) : (z || ""); }
+
+  function listOf(c, kind) {
+    return kind === "attractions" ? c.attractions : kind === "tours" ? c.tours : c.restaurants;
+  }
+
+  function soles(usdAmount) {
+    return "S/ " + Math.round(usdAmount * city().settings.exchangeRate);
+  }
 
   function hoursSummary(hours) {
     var open = hours.filter(Boolean);
@@ -99,7 +107,7 @@
     document.querySelectorAll("[data-admin-tab]").forEach(function (b) {
       b.setAttribute("aria-selected", b.getAttribute("data-admin-tab") === tab ? "true" : "false");
     });
-    searchEl.parentNode.hidden = tab === "settings" || !!editing;
+    searchEl.parentNode.hidden = tab === "settings" || tab === "tours" || !!editing;
     if (editing) { listEl.hidden = true; editorEl.hidden = false; return; }
     listEl.hidden = false;
     editorEl.hidden = true;
@@ -107,7 +115,8 @@
 
     var c = city();
     var q = searchEl.value.trim().toLowerCase();
-    var items = (tab === "attractions" ? c.attractions : c.restaurants).filter(function (it) {
+    if (tab === "tours") return renderTours(c);
+    var items = listOf(c, tab).filter(function (it) {
       return !q || (es(it.name) + " " + en(it.name) + " " + zoneName(c, it.zone)).toLowerCase().indexOf(q) !== -1;
     });
 
@@ -125,6 +134,20 @@
       }).join("") +
       "</tbody></table></div>" +
       (items.length ? "" : '<p class="muted">No hay resultados para esa búsqueda.</p>');
+  }
+
+  function renderTours(c) {
+    listEl.innerHTML = '<p class="muted small">Tours que se ofrecen a los turistas en el cuestionario y en su itinerario.</p>' +
+      '<div class="admin-table-wrap"><table class="admin-table"><thead><tr>' +
+      "<th>Tour</th><th>Operador</th><th>Precio</th><th>Salidas</th><th>Estado</th><th></th></tr></thead><tbody>" +
+      c.tours.map(function (it) {
+        var status = (it.hidden ? '<span class="pill off">Oculto</span>' : '<span class="pill on">Visible</span>') +
+          (it.edited ? ' <span class="pill edited">Editado</span>' : "");
+        return "<tr><td><strong>" + esc(es(it.name)) + "</strong></td><td>" + esc(it.provider) + "</td>" +
+          '<td class="num">US$ ' + it.priceUsd + ' <span class="muted">· ' + soles(it.priceUsd) + "</span></td>" +
+          "<td>" + esc(it.departures.join(", ")) + "</td><td>" + status + "</td>" +
+          '<td><button type="button" class="btn small" data-edit="' + esc(it.id) + '">Editar</button></td></tr>';
+      }).join("") + "</tbody></table></div>";
   }
 
   function renderSettings() {
@@ -164,7 +187,7 @@
   function openEditor(kind, id) {
     editing = { kind: kind, id: id };
     var c = city();
-    var it = (kind === "attractions" ? c.attractions : c.restaurants).filter(function (x) { return x.id === id; })[0];
+    var it = listOf(c, kind).filter(function (x) { return x.id === id; })[0];
     var common =
       field("ed-name-es", "Nombre (español)", input("ed-name-es", es(it.name))) +
       field("ed-name-en", "Nombre (inglés)", input("ed-name-en", en(it.name))) +
@@ -172,7 +195,19 @@
       field("ed-desc-en", "Descripción (inglés)", textarea("ed-desc-en", en(it.desc)), true);
 
     var specific;
-    if (kind === "attractions") {
+    if (kind === "tours") {
+      specific =
+        field("ed-provider", "Operador", input("ed-provider", it.provider)) +
+        field("ed-url", "Enlace para reservar (web o WhatsApp)", input("ed-url", it.url, "url")) +
+        field("ed-price-usd", "Precio por persona (US$)", input("ed-price-usd", it.priceUsd, "number", ' min="0" step="1"') +
+          '<small class="hint" id="ed-price-sol">≈ ' + soles(it.priceUsd) + "</small>") +
+        field("ed-duration", "Duración (minutos)", input("ed-duration", it.duration, "number", ' min="30" step="15"')) +
+        field("ed-departures", "Horas de salida (separadas por coma)", input("ed-departures", it.departures.join(", "))) +
+        field("ed-incl-es", "Qué incluye (español)", textarea("ed-incl-es", es(it.includes)), true) +
+        field("ed-incl-en", "Qué incluye (inglés)", textarea("ed-incl-en", en(it.includes)), true) +
+        field("ed-tip-es", "Nota (español, opcional)", textarea("ed-tip-es", es(it.tip)), true) +
+        field("ed-tip-en", "Nota (inglés, opcional)", textarea("ed-tip-en", en(it.tip)), true);
+    } else if (kind === "attractions") {
       specific =
         field("ed-tip-es", "Consejo (español, opcional)", textarea("ed-tip-es", es(it.tip)), true) +
         field("ed-tip-en", "Consejo (inglés, opcional)", textarea("ed-tip-en", en(it.tip)), true) +
@@ -235,15 +270,31 @@
     var data = {
       name: { es: val("ed-name-es"), en: val("ed-name-en") || val("ed-name-es") },
       desc: { es: val("ed-desc-es"), en: val("ed-desc-en") || val("ed-desc-es") },
-      cost: num("ed-cost"),
       duration: num("ed-duration"),
       hidden: checked("ed-hidden")
     };
     if (!data.name.es) errors.push("Escribe el nombre en español.");
-    if (!(data.cost >= 0)) errors.push("El precio debe ser 0 o mayor.");
     if (!(data.duration >= 15)) errors.push("La duración debe ser de al menos 15 minutos.");
+    if (kind !== "tours") {
+      data.cost = num("ed-cost");
+      if (!(data.cost >= 0)) errors.push("El precio debe ser 0 o mayor.");
+    }
 
-    if (kind === "attractions") {
+    if (kind === "tours") {
+      data.provider = val("ed-provider");
+      data.url = val("ed-url");
+      data.priceUsd = num("ed-price-usd");
+      if (!(data.priceUsd >= 0)) errors.push("El precio debe ser 0 o mayor.");
+      if (data.url && !/^https:\/\//.test(data.url)) errors.push("El enlace debe empezar con https:// (por ejemplo https://wa.me/51999999999).");
+      data.departures = val("ed-departures").split(/[,\s]+/).filter(Boolean);
+      var badTime = data.departures.filter(function (x) { return !/^([01]\d|2[0-3]):[0-5]\d$/.test(x); });
+      if (!data.departures.length || badTime.length) errors.push("Escribe las horas de salida en formato 24 h, por ejemplo: 09:00, 14:00.");
+      data.departures.sort();
+      var inclEs = val("ed-incl-es"), inclEn = val("ed-incl-en");
+      data.includes = { es: inclEs, en: inclEn || inclEs };
+      var noteEs = val("ed-tip-es"), noteEn = val("ed-tip-en");
+      data.tip = noteEs ? { es: noteEs, en: noteEn || noteEs } : null;
+    } else if (kind === "attractions") {
       var tipEs = val("ed-tip-es"), tipEn = val("ed-tip-en");
       data.tip = tipEs ? { es: tipEs, en: tipEn || tipEs } : null;
       data.priority = Math.max(1, Math.min(10, Math.round(num("ed-priority")) || 5));
@@ -350,6 +401,9 @@
   panel.addEventListener("input", function (e) {
     if (e.target.id === "ed-cost") {
       document.getElementById("ed-cost-usd").textContent = usd(parseFloat(e.target.value) || 0) || "Gratis";
+    }
+    if (e.target.id === "ed-price-usd") {
+      document.getElementById("ed-price-sol").textContent = "≈ " + soles(parseFloat(e.target.value) || 0);
     }
   });
 
