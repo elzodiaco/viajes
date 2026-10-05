@@ -18,7 +18,8 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --bg: #17120f;
     --surface: #211a16;
     --surface-2: #2b231e;
@@ -33,6 +34,23 @@
     --gold: #e7b55a;
     --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
   }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #17120f;
+  --surface: #211a16;
+  --surface-2: #2b231e;
+  --text: #f3ebe3;
+  --muted: #b3a597;
+  --border: #3a2f28;
+  --accent: #e8664f;
+  --accent-ink: #1a0f0b;
+  --accent-soft: #3b211b;
+  --teal: #5fb7bf;
+  --teal-soft: #1b3033;
+  --gold: #e7b55a;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
 }
 
 * { box-sizing: border-box; }
@@ -56,7 +74,7 @@ h1, h2, h3 { font-family: var(--display); line-height: 1.15; margin: 0; }
 
 /* ---------------------------------------------------------------- topbar */
 .topbar {
-  position: sticky; top: 0; z-index: 10;
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
@@ -183,7 +201,7 @@ input:focus-visible, select:focus-visible, button:focus-visible, .chip input:foc
 
 .day-tabs {
   display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 12px; margin-bottom: 8px;
-  position: sticky; top: 60px; z-index: 5; background: var(--bg);
+  position: sticky; top: calc(60px + env(safe-area-inset-top, 0px)); z-index: 5; background: var(--bg);
 }
 .day-tabs a {
   flex: 0 0 auto; display: flex; flex-direction: column; align-items: center;
