@@ -26,7 +26,14 @@ El panel no aparece en la página pública: se abre con un enlace aparte que ter
 ## Cómo usarla
 
 No necesita instalación ni servidor: abre `index.html` en el navegador.
-Para publicarla gratis puedes usar GitHub Pages (Settings → Pages → rama `main`, carpeta raíz).
+
+### Publicar en Netlify (gratis)
+
+1. En https://app.netlify.com elige **Add new site → Import an existing project → GitHub** y selecciona `elzodiaco/viajes`.
+2. Rama: `main`. Netlify lee `netlify.toml` (sin comando de build, carpeta de publicación `.`), así que no hay que configurar nada más.
+3. **Deploy**. Cada cambio que llegue a `main` se publica solo.
+
+También se puede usar GitHub Pages (Settings → Pages → rama `main`, carpeta raíz).
 
 ## Estructura
 
