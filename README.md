@@ -21,7 +21,8 @@ Permite **agregar, editar, ocultar y eliminar** atracciones, restaurantes y tour
 El panel no aparece en la página pública: se abre con un enlace aparte que termina en `#admin`.
 
 - **Publicada en Claude:** solo el dueño de la página puede entrar y guardar (la base de datos rechaza escrituras de cualquier otra persona). Los cambios se guardan en la nube y todos los visitantes los ven.
-- **Como sitio estático:** `index.html#admin` funciona en modo de prueba y guarda solo en ese navegador; para cambios permanentes edita `js/data/lima.js`.
+- **En Netlify:** entra a `https://tu-sitio.netlify.app/#admin` con la contraseña de administrador. Los cambios se guardan en la nube (Netlify Blobs, a través de la función `netlify/functions/data.mjs`) y todos los visitantes los ven. La contraseña se define en Netlify como variable de entorno `ADMIN_PASSWORD` (*Site configuration → Environment variables*).
+- **Abierta como archivo local:** `index.html#admin` funciona en modo de prueba y guarda solo en ese navegador.
 
 ## Cómo usarla
 
@@ -30,8 +31,9 @@ No necesita instalación ni servidor: abre `index.html` en el navegador.
 ### Publicar en Netlify (gratis)
 
 1. En https://app.netlify.com elige **Add new site → Import an existing project → GitHub** y selecciona `elzodiaco/viajes`.
-2. Rama: `main`. Netlify lee `netlify.toml` (sin comando de build, carpeta de publicación `.`), así que no hay que configurar nada más.
+2. Rama: `main`. Netlify lee `netlify.toml` (copia la página a `dist/` y publica la función del panel), así que no hay que configurar nada más.
 3. **Deploy**. Cada cambio que llegue a `main` se publica solo.
+4. En *Site configuration → Environment variables* agrega `ADMIN_PASSWORD` con una contraseña larga y vuelve a desplegar (*Deploys → Trigger deploy*).
 
 También se puede usar GitHub Pages (Settings → Pages → rama `main`, carpeta raíz).
 
@@ -47,6 +49,9 @@ js/store.js         Cambios del administrador (base compartida o localStorage)
 js/admin.js         Panel de administración
 js/pdf.js           Descarga del itinerario en PDF (jsPDF)
 js/app.js           Interfaz: formulario, render y eventos
+netlify/functions/  Función del servidor en Netlify (API /api/data y /api/login)
+netlify/lib/api.mjs Lógica de la API (contraseña, validación, guardado)
+tests/              Pruebas de la API (`npm test`)
 ```
 
 ## Agregar una nueva ciudad

@@ -265,6 +265,14 @@ input:focus-visible, select:focus-visible, button:focus-visible, .chip input:foc
 /* ------------------------------------------------------------------ admin */
 .top-actions { display: flex; align-items: center; gap: 10px; }
 .admin-gate { padding: 24px; }
+.admin-head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.login-form { display: flex; flex-direction: column; gap: 14px; max-width: 360px; }
+.login-form p { margin: 0; }
+.login-form input[type="password"] {
+  width: 100%; font: 500 1rem var(--font); color: var(--text); background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; height: 46px;
+}
+.login-form .btn { align-self: flex-start; }
 .admin-gate h3 { font-size: 1.3rem; margin-bottom: 6px; }
 .admin-gate p { margin: 0; max-width: 60ch; }
 .pdf-status { background: var(--accent-soft); color: var(--accent); padding: 10px 14px; border-radius: 10px; font-weight: 500; margin: 0 0 12px; }

@@ -88,12 +88,24 @@
     gateEl.hidden = allowed;
     if (!DataStore.ready()) {
       gateEl.innerHTML = '<p class="muted">Verificando acceso…</p>';
+    } else if (DataStore.needsLogin()) {
+      // Sitio en Netlify: se entra con la contraseña del administrador.
+      if (!document.getElementById("login-form")) {
+        gateEl.innerHTML = '<form id="login-form" class="login-form" novalidate>' +
+          "<h3>Entrar al panel</h3>" +
+          '<p class="muted">Escribe la contraseña de administrador que configuraste en Netlify.</p>' +
+          '<div class="field"><label for="login-pass">Contraseña</label>' +
+          '<input id="login-pass" type="password" autocomplete="current-password"></div>' +
+          '<p class="error" id="login-error" hidden></p>' +
+          '<button class="btn primary" type="submit" id="login-btn">Entrar</button></form>';
+      }
     } else if (!allowed) {
       gateEl.innerHTML = "<h3>Acceso restringido</h3>" +
         '<p class="muted">Este panel solo está disponible para el administrador de la página. ' +
         "Si eres el administrador, abre este enlace con tu cuenta de Claude.</p>";
     }
-    var local = DataStore.mode() !== "db";
+    var local = DataStore.mode() === "local";
+    document.getElementById("admin-logout").hidden = !(allowed && DataStore.mode() === "remote");
     document.getElementById("admin-mode").textContent = !allowed ? "" : local
       ? "Modo de prueba: los cambios se guardan solo en este navegador."
       : "Los cambios se guardan en la nube y los ven todos los visitantes de la página.";
@@ -576,8 +588,32 @@
     }
   });
 
+  function doLogin() {
+    var btn = document.getElementById("login-btn");
+    var err = document.getElementById("login-error");
+    var pass = document.getElementById("login-pass").value;
+    if (!pass) { err.textContent = "Escribe la contraseña."; err.hidden = false; return; }
+    btn.disabled = true;
+    DataStore.login(pass).then(function () {
+      gateEl.innerHTML = "";
+      open();
+    }, function (e) {
+      btn.disabled = false;
+      err.textContent = e && e.code === "not_configured"
+        ? "Falta configurar la contraseña en Netlify (variable ADMIN_PASSWORD)."
+        : e && e.code === "unauthorized" ? "Contraseña incorrecta." : "No se pudo conectar. Inténtalo de nuevo.";
+      err.hidden = false;
+    });
+  }
+
+  document.getElementById("admin-logout").addEventListener("click", function () {
+    DataStore.logout();
+    open();
+  });
+
   panel.addEventListener("submit", function (e) {
     e.preventDefault();
+    if (e.target.id === "login-form") return doLogin();
     if (e.target.id === "editor-form") saveEditor();
     if (e.target.id === "settings-form") saveSettings();
   });
