@@ -12,7 +12,8 @@
   var editorEl = document.getElementById("admin-editor");
   var searchEl = document.getElementById("admin-search");
   var toastEl = document.getElementById("admin-toast");
-  var openBtn = document.getElementById("btn-admin");
+  var gateEl = document.getElementById("admin-gate");
+  var bodyEl = document.getElementById("admin-body");
   var tab = "attractions";
   var editing = null; // { kind, id }
   var toastTimer = null;
@@ -57,26 +58,39 @@
   }
 
   // ------------------------------------------------------------ open/close
+  // El panel solo se abre desde el enlace con #admin y solo para el dueño.
   function open() {
+    var wasHidden = panel.hidden;
     document.body.classList.add("admin-open");
     panel.hidden = false;
+    var allowed = DataStore.canEdit();
+    bodyEl.hidden = !allowed;
+    gateEl.hidden = allowed;
+    if (!DataStore.ready()) {
+      gateEl.innerHTML = '<p class="muted">Verificando acceso…</p>';
+    } else if (!allowed) {
+      gateEl.innerHTML = "<h3>Acceso restringido</h3>" +
+        '<p class="muted">Este panel solo está disponible para el administrador de la página. ' +
+        "Si eres el administrador, abre este enlace con tu cuenta de Claude.</p>";
+    }
     var local = DataStore.mode() !== "db";
-    document.getElementById("admin-mode").textContent = local
+    document.getElementById("admin-mode").textContent = !allowed ? "" : local
       ? "Modo de prueba: los cambios se guardan solo en este navegador."
-      : "Los cambios se guardan para todos los visitantes de la página.";
-    render();
-    window.scrollTo(0, 0);
+      : "Los cambios se guardan en la nube y los ven todos los visitantes de la página.";
+    if (allowed) render();
+    if (wasHidden) window.scrollTo(0, 0);
   }
 
   function close() {
     document.body.classList.remove("admin-open");
     panel.hidden = true;
     editing = null;
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { /* ignorado */ }
   }
 
-  function refreshButton() {
-    openBtn.hidden = !DataStore.canEdit();
-    if (!DataStore.canEdit() && !panel.hidden) close();
+  function syncWithHash() {
+    if (location.hash === "#admin") open();
+    else if (!panel.hidden) close();
   }
 
   // ------------------------------------------------------------------ list
@@ -304,7 +318,7 @@
   }
 
   // ---------------------------------------------------------------- events
-  openBtn.addEventListener("click", open);
+  window.addEventListener("hashchange", syncWithHash);
   document.getElementById("admin-close").addEventListener("click", close);
   searchEl.addEventListener("input", render);
 
@@ -346,9 +360,7 @@
   });
 
   DataStore.onChange(function () {
-    refreshButton();
-    if (!editing) render();
+    if (!panel.hidden && !editing) open();
   });
-  refreshButton();
-  if (DataStore.canEdit() && location.hash === "#admin") open();
+  syncWithHash();
 })();

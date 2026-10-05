@@ -263,11 +263,11 @@ input:focus-visible, select:focus-visible, button:focus-visible, .chip input:foc
 
 /* ------------------------------------------------------------------ admin */
 .top-actions { display: flex; align-items: center; gap: 10px; }
-.admin-btn {
-  border: 1px solid var(--border); background: var(--surface); color: var(--text);
-  font: 600 .8rem var(--font); padding: 8px 12px; border-radius: 999px; cursor: pointer;
-}
-.admin-btn:hover { border-color: var(--teal); color: var(--teal); }
+.admin-gate { padding: 24px; }
+.admin-gate h3 { font-size: 1.3rem; margin-bottom: 6px; }
+.admin-gate p { margin: 0; max-width: 60ch; }
+.pdf-status { background: var(--accent-soft); color: var(--accent); padding: 10px 14px; border-radius: 10px; font-weight: 500; margin: 0 0 12px; }
+.btn:disabled { opacity: .6; cursor: progress; }
 
 body.admin-open main > :not(#admin) { display: none; }
 .admin { padding-block: 32px 48px; }

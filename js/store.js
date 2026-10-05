@@ -16,6 +16,7 @@
   var db = null;
   var mode = "local";
   var canEdit = false;
+  var ready = false;
 
   function emit() {
     listeners.forEach(function (fn) { fn(); });
@@ -50,13 +51,14 @@
     var claude = window.claude;
     if (!claude || typeof claude.use !== "function") {
       // Sitio estático: el panel se abre con #admin y guarda en este navegador.
-      canEdit = location.hash === "#admin";
+      canEdit = true;
+      ready = true;
       return Promise.resolve();
     }
     // Dentro de Claude solo se usa la base compartida.
     overrides = { attractions: {}, restaurants: {}, settings: {} };
     return claude.use("db").then(function (handle) {
-      if (!handle) return;
+      if (!handle) return finish();
       db = handle;
       mode = "db";
       subscribeCollection("attractions");
@@ -65,11 +67,14 @@
         overrides.settings = snap.exists ? snap.data() : {};
         emit();
       }, function () {});
+      // Solo el dueño de la página puede administrarla.
       return claude.use("user").then(function (user) {
-        if (!user) return;
-        return user.canEdit().then(function (ok) { canEdit = !!ok; emit(); });
+        if (!user) return finish();
+        return user.isOwner().then(function (ok) { canEdit = !!ok; finish(); });
       });
-    }).catch(function () {});
+    }).catch(finish);
+
+    function finish() { ready = true; emit(); }
   }
 
   function save(kind, id, data) {
@@ -133,6 +138,7 @@
     hoursToStrings: hoursToStrings,
     mode: function () { return mode; },
     canEdit: function () { return canEdit; },
+    ready: function () { return ready; },
     defaults: DEFAULT_SETTINGS
   };
 })();

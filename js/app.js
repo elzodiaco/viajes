@@ -148,7 +148,8 @@
   }
 
   // --------------------------------------------------------------- render
-  function eventView(ev, res) {
+  // Contenido de un evento como datos; lo usan la vista HTML y el PDF.
+  function eventData(ev, res) {
     var c = city();
     var zoneName = L((c.zones[res.hotelZone] || {}).name);
     var title = "", desc = "", tip = "", icon = ICONS[ev.type] || "📍", meta = [], tags = [];
@@ -208,30 +209,67 @@
       mapUrl = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q);
     }
 
-    var travel = "";
-    if (ev.travel && ev.travel.mode !== "none" && ev.type !== "return" && ev.type !== "transfer-in" && ev.type !== "transfer-out") {
-      travel = '<div class="travel">' + (ev.travel.mode === "walk" ? "🚶" : "🚕") + " " +
-        duration(ev.travel.min) + " " + t(ev.travel.mode) + "</div>";
+    var travel = null;
+    var isTransfer = ev.type === "return" || ev.type === "transfer-in" || ev.type === "transfer-out";
+    if (ev.travel && ev.travel.mode !== "none") {
+      travel = { mode: ev.travel.mode, text: duration(ev.travel.min) + " " + t(ev.travel.mode) };
     }
-    var span = ev.end > ev.start ? Planner.fmt(ev.start) + "–" + Planner.fmt(ev.end) : Planner.fmt(ev.start);
-    if (ev.type === "return" || ev.type === "transfer-in" || ev.type === "transfer-out") {
-      meta.push((ev.travel.mode === "walk" ? "🚶 " : "🚕 ") + duration(ev.travel.min) + " " + t(ev.travel.mode));
-    }
-    var logistic = ["arrival", "transfer-in", "checkin", "pickup", "transfer-out", "airport", "flight", "return"].indexOf(ev.type) !== -1;
+    return {
+      type: ev.type,
+      icon: icon, title: title, desc: desc, tip: tip, meta: meta, tags: tags, mapUrl: mapUrl,
+      span: ev.end > ev.start ? Planner.fmt(ev.start) + "–" + Planner.fmt(ev.end) : Planner.fmt(ev.start),
+      travelBefore: isTransfer ? null : travel,
+      travelSelf: isTransfer ? travel : null,
+      logistic: ["arrival", "transfer-in", "checkin", "pickup", "transfer-out", "airport", "flight", "return"].indexOf(ev.type) !== -1
+    };
+  }
 
-    return travel +
-      '<article class="event ' + ev.type + (logistic ? " logistic" : "") + '">' +
-        '<div class="time">' + span + "</div>" +
-        '<div class="dot" aria-hidden="true">' + icon + "</div>" +
+  function travelIcon(tr) { return tr.mode === "walk" ? "🚶" : "🚕"; }
+
+  function eventView(ev, res) {
+    var d = eventData(ev, res);
+    var meta = d.meta.slice();
+    if (d.travelSelf) meta.push(travelIcon(d.travelSelf) + " " + d.travelSelf.text);
+    return (d.travelBefore ? '<div class="travel">' + travelIcon(d.travelBefore) + " " + d.travelBefore.text + "</div>" : "") +
+      '<article class="event ' + d.type + (d.logistic ? " logistic" : "") + '">' +
+        '<div class="time">' + d.span + "</div>" +
+        '<div class="dot" aria-hidden="true">' + d.icon + "</div>" +
         '<div class="body">' +
-          "<h4>" + esc(title) + "</h4>" +
-          (desc ? "<p>" + esc(desc) + "</p>" : "") +
-          (tip ? '<p class="tip">💡 ' + esc(tip) + "</p>" : "") +
+          "<h4>" + esc(d.title) + "</h4>" +
+          (d.desc ? "<p>" + esc(d.desc) + "</p>" : "") +
+          (d.tip ? '<p class="tip">💡 ' + esc(d.tip) + "</p>" : "") +
           (meta.length ? '<div class="meta">' + meta.map(function (m) { return "<span>" + esc(m) + "</span>"; }).join("") + "</div>" : "") +
-          (tags.length || mapUrl ? '<div class="tags">' + tags.map(function (x) { return '<span class="tag">' + esc(x) + "</span>"; }).join("") +
-            (mapUrl ? '<a class="tag link" target="_blank" rel="noopener" href="' + mapUrl + '">📍 ' + esc(t("map")) + "</a>" : "") + "</div>" : "") +
+          (d.tags.length || d.mapUrl ? '<div class="tags">' + d.tags.map(function (x) { return '<span class="tag">' + esc(x) + "</span>"; }).join("") +
+            (d.mapUrl ? '<a class="tag link" target="_blank" rel="noopener" href="' + d.mapUrl + '">📍 ' + esc(t("map")) + "</a>" : "") + "</div>" : "") +
         "</div>" +
       "</article>";
+  }
+
+  /** Itinerario actual como datos simples, para exportarlo a PDF. */
+  function exportData() {
+    if (!lastResult) return null;
+    var c = city(), res = lastResult, prefs = lastPrefs;
+    var dateFmt = new Intl.DateTimeFormat(lang === "es" ? "es-PE" : "en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    return {
+      lang: lang,
+      title: t("yourTrip") + " " + L(c.name),
+      summary: t("summary", { days: prefs.days, zone: L(c.zones[prefs.hotelZone].name), flight: prefs.departureTime }),
+      warnings: res.warnings.map(function (w) { return t("warnings." + w); }),
+      days: res.days.map(function (d, i) {
+        return {
+          label: t("day") + " " + (i + 1),
+          date: dateFmt.format(d.date),
+          cost: money(d.cost),
+          events: d.events.map(function (ev) { return eventData(ev, res); })
+        };
+      }),
+      labels: { estDay: t("estDay"), estTotal: t("estTotal"), tips: t("tipsTitle"), map: t("map") },
+      total: soles(res.total) + " · " + dollars(res.total),
+      note: t("estNote") + " " + t("rate", { rate: c.settings.exchangeRate.toFixed(2) }),
+      tips: c.tips.map(L),
+      disclaimer: t("disclaimer"),
+      fileName: "itinerario-" + c.id + "-" + prefs.arrivalDate + ".pdf"
+    };
   }
 
   function render(res, prefs) {
@@ -335,8 +373,7 @@
   document.getElementById("btn-edit").addEventListener("click", function () {
     form.scrollIntoView({ behavior: "smooth", block: "start" });
   });
-  var printBtn = document.getElementById("btn-print");
-  if (printBtn) printBtn.addEventListener("click", function () { window.print(); });
+
 
   // ------------------------------------------------------------------ init
   form.elements.arrivalDate.value = todayISO();
@@ -358,5 +395,5 @@
   });
   DataStore.init();
 
-  window.App = { lang: function () { return lang; } };
+  window.App = { lang: function () { return lang; }, exportData: exportData, t: t };
 })();

@@ -29,7 +29,9 @@
       high: "Alto",
       generate: "Armar mi itinerario",
       regenerate: "Ver otra versión",
-      print: "Imprimir / PDF",
+      pdf: "Descargar PDF",
+      pdfBusy: "Generando PDF…",
+      pdfError: "No se pudo generar el PDF. Revisa tu conexión e inténtalo de nuevo.",
       edit: "Editar datos",
       interest: {
         gastronomy: "Gastronomía", history: "Historia y museos", art: "Arte",
@@ -116,7 +118,9 @@
       high: "High-end",
       generate: "Build my itinerary",
       regenerate: "Show another version",
-      print: "Print / PDF",
+      pdf: "Download PDF",
+      pdfBusy: "Creating PDF…",
+      pdfError: "The PDF couldn't be created. Check your connection and try again.",
       edit: "Edit details",
       interest: {
         gastronomy: "Food", history: "History & museums", art: "Art",
