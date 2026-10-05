@@ -1,7 +1,13 @@
-# Sitio estático: Netlify publica la carpeta raíz tal cual, sin compilar.
+# Sitio estático: solo se copian los archivos de la página a "dist"
+# (así no se publican node_modules ni el código del servidor).
 [build]
-  publish = "."
-  command = ""
+  publish = "dist"
+  command = "rm -rf dist && mkdir dist && cp -r index.html css js dist/"
+
+# API del panel admin (guarda los cambios en Netlify Blobs).
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
 
 [[headers]]
   for = "/*"

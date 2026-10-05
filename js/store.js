@@ -5,10 +5,14 @@
  * cambia se guarda como "overrides" que se aplican encima:
  *   - Publicada en Claude: base de datos compartida del artifact (todos los
  *     visitantes ven los cambios; solo Editores/Owner pueden escribir).
- *   - Como sitio estático: localStorage de este navegador (solo para probar).
+ *   - En Netlify: la API /api/data guarda en Netlify Blobs; para escribir hay
+ *     que entrar con la contraseña del administrador (ADMIN_PASSWORD).
+ *   - Abierta como archivo local: localStorage de este navegador (solo pruebas).
  */
 (function () {
   var LOCAL_KEY = "rutaperu.overrides";
+  var PASS_KEY = "rutaperu.adminpass";
+  var API = "/api/data";
   var DEFAULT_SETTINGS = {
     exchangeRate: 3.75, taxiBase: 8, taxiPerMin: 0.6,
     // Servicio propio de taxi al aeropuerto (se reserva por WhatsApp).
@@ -24,6 +28,7 @@
   var mode = "local";
   var canEdit = false;
   var ready = false;
+  var password = null;
 
   function emit() {
     listeners.forEach(function (fn) { fn(); });
@@ -54,14 +59,82 @@
     }, function () { /* la página sigue funcionando con los datos base */ });
   }
 
+  function setAll(data) {
+    overrides = {
+      attractions: data.attractions || {}, restaurants: data.restaurants || {},
+      tours: data.tours || {}, settings: data.settings || {}
+    };
+  }
+
+  function session(fn) {
+    try { return fn(window.sessionStorage); } catch (e) { return null; }
+  }
+
+  // Sitio publicado (Netlify): lee los cambios de la API del servidor.
+  function initRemote() {
+    return fetch(API, { cache: "no-store" }).then(function (res) {
+      var type = res.headers.get("content-type") || "";
+      if (!res.ok || type.indexOf("application/json") === -1) throw new Error("sin API");
+      return res.json();
+    }).then(function (data) {
+      mode = "remote";
+      setAll(data);
+      var saved = session(function (s) { return s.getItem(PASS_KEY); });
+      if (!saved) return;
+      // Mantiene la sesión del administrador mientras la pestaña esté abierta.
+      return login(saved).then(function () {}, function () {});
+    });
+  }
+
+  function login(pass) {
+    return fetch("/api/login", { method: "POST", headers: { authorization: "Bearer " + pass } }).then(function (res) {
+      if (res.status === 200) {
+        password = pass;
+        canEdit = true;
+        session(function (s) { s.setItem(PASS_KEY, pass); });
+        emit();
+        return true;
+      }
+      if (res.status === 503) throw { code: "not_configured" };
+      throw { code: "unauthorized" };
+    });
+  }
+
+  function logout() {
+    password = null;
+    canEdit = false;
+    session(function (s) { s.removeItem(PASS_KEY); });
+    emit();
+  }
+
+  function remoteWrite(body) {
+    return fetch(API, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: "Bearer " + password },
+      body: JSON.stringify(body)
+    }).then(function (res) {
+      if (res.status === 401) { logout(); throw { code: "unauthorized" }; }
+      if (!res.ok) throw { code: "unavailable" };
+      return res.json();
+    }).then(function (data) { setAll(data); emit(); });
+  }
+
   function init() {
     readLocal();
     var claude = window.claude;
     if (!claude || typeof claude.use !== "function") {
-      // Sitio estático: el panel se abre con #admin y guarda en este navegador.
-      canEdit = true;
-      ready = true;
-      return Promise.resolve();
+      var local = function () {
+        // Archivo abierto en la computadora: el panel guarda en este navegador.
+        mode = "local";
+        canEdit = true;
+      };
+      var done = function () { ready = true; emit(); };
+      if (location.protocol !== "http:" && location.protocol !== "https:") {
+        local();
+        done();
+        return Promise.resolve();
+      }
+      return initRemote().catch(local).then(done);
     }
     // Dentro de Claude solo se usa la base compartida.
     overrides = { attractions: {}, restaurants: {}, tours: {}, settings: {} };
@@ -88,6 +161,7 @@
 
   function save(kind, id, data) {
     if (mode === "db") return db.collection(kind).doc(id).set(data);
+    if (mode === "remote") return remoteWrite({ action: "save", kind: kind, id: id, data: data });
     overrides[kind][id] = data;
     writeLocal();
     emit();
@@ -96,6 +170,7 @@
 
   function remove(kind, id) {
     if (mode === "db") return db.collection(kind).doc(id).delete();
+    if (mode === "remote") return remoteWrite({ action: "remove", kind: kind, id: id });
     delete overrides[kind][id];
     writeLocal();
     emit();
@@ -104,6 +179,7 @@
 
   function saveSettings(data) {
     if (mode === "db") return db.doc("config/settings").set(data);
+    if (mode === "remote") return remoteWrite({ action: "settings", data: data });
     overrides.settings = data;
     writeLocal();
     emit();
@@ -157,6 +233,9 @@
     hoursToStrings: hoursToStrings,
     mode: function () { return mode; },
     canEdit: function () { return canEdit; },
+    needsLogin: function () { return mode === "remote" && !canEdit; },
+    login: login,
+    logout: logout,
     ready: function () { return ready; },
     defaults: DEFAULT_SETTINGS
   };
