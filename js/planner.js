@@ -96,13 +96,20 @@
     return s;
   }
 
+  // Tour que se ofrece en el cuestionario: el elegido en el panel o el primero visible.
+  function featuredTour(city) {
+    var tours = (city.tours || []).filter(function (x) { return !x.hidden; });
+    var id = city.settings && city.settings.featuredTour;
+    return tours.filter(function (x) { return x.id === id; })[0] || tours[0] || null;
+  }
+
   /**
    * prefs = {
    *   arrivalDate: "YYYY-MM-DD", arrivalTime: "HH:MM", days: n,
    *   departureTime: "HH:MM", flightType: "intl" | "dom",
    *   hotelZone, pace, budget, interests: [], seed,
    *   travelWith: "solo" | "couple" | "friends" | "family",
-   *   firstTime: bool, avoidSeafood: bool, wantsTour: bool
+   *   firstTime: bool, avoidSeafood: bool, wantsTour: bool, people: n
    * }
    */
   function plan(city, prefs) {
@@ -119,6 +126,10 @@
     var hotel = { lat: zone.lat, lng: zone.lng, zone: prefs.hotelZone };
     var airport = city.airport;
     var nDays = Math.max(1, Math.min(14, prefs.days | 0));
+    // Entradas, comidas y tours se pagan por persona; taxis y traslados por
+    // vehículo (hasta 4 pasajeros cada uno).
+    var people = Math.max(1, Math.min(30, prefs.people | 0 || 1));
+    var vehicles = Math.ceil(people / 4);
 
     var transfer = travel(airport, hotel);
     transfer.min += 15; // margen extra por el tráfico hacia/desde el aeropuerto
@@ -143,7 +154,7 @@
     var days = [];
     for (var d = 0; d < nDays; d++) {
       var date = addDays(prefs.arrivalDate, d);
-      days.push({ index: d, date: date, weekday: date.getDay(), events: [], cost: 0 });
+      days.push({ index: d, date: date, weekday: date.getDay(), events: [], cost: 0, perPerson: 0, shared: 0 });
     }
 
     function dayOf(abs) {
@@ -153,7 +164,10 @@
     function push(ev, day) {
       day = day || days[dayOf(ev.start)];
       day.events.push(ev);
-      day.cost += (ev.cost || 0) + (ev.travel && !ev.fixedFare ? taxiCost(ev.travel) : 0);
+      if (ev.fixedFare) day.shared += ev.cost || 0;
+      else day.perPerson += ev.cost || 0;
+      if (ev.travel && !ev.fixedFare) day.shared += taxiCost(ev.travel);
+      day.cost = day.perPerson * people + day.shared * vehicles;
     }
 
     // --- Llegada -----------------------------------------------------------
@@ -184,7 +198,7 @@
     // Se reserva un bloque fijo el primer día completo que encaje con los
     // vuelos; sus paradas no se repiten en el resto del itinerario.
     var tourPlan = null;
-    var tour = prefs.wantsTour ? (city.tours || []).filter(function (x) { return !x.hidden; })[0] : null;
+    var tour = prefs.wantsTour ? featuredTour(city) : null;
     if (tour) {
       var rate = settings.exchangeRate || 3.75;
       var order = [];
@@ -196,6 +210,7 @@
         for (var j = 0; j < tour.departures.length; j++) {
           var ts = base0 + toMin(tour.departures[j]);
           var te = ts + tour.duration;
+          if (!tour.departures || !tour.departures.length) break outer;
           var restUntil = order[i] > 0 && readyAbs > base0 && readyAbs < base0 + 9 * 60 ? base0 + 11 * 60 : 0;
           if (ts < readyAbs + 15 || ts < restUntil) continue;
           if (te + travel(tour.end, hotel).min > hotelDeadline) continue;
@@ -203,7 +218,7 @@
           break outer;
         }
       }
-      if (tourPlan) tour.covers.forEach(function (id) { used[id] = true; });
+      if (tourPlan) (tour.covers || []).forEach(function (id) { used[id] = true; });
       else warnings.push("tourNoFit");
     }
 
@@ -419,9 +434,11 @@
       days: days,
       warnings: warnings,
       hotelZone: prefs.hotelZone,
-      total: days.reduce(function (s, d) { return s + d.cost; }, 0)
+      total: days.reduce(function (s, d) { return s + d.cost; }, 0),
+      people: people,
+      vehicles: vehicles
     };
   }
 
-  window.Planner = { plan: plan, fmt: fmt, DAY: DAY };
+  window.Planner = { plan: plan, fmt: fmt, DAY: DAY, featuredTour: featuredTour };
 })();

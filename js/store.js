@@ -14,7 +14,8 @@
     // Servicio propio de taxi al aeropuerto (se reserva por WhatsApp).
     transferEnabled: true,
     whatsapp: "",
-    transferPrices: { miraflores: 70, barranco: 75, sanisidro: 65, centro: 60, callao: 35 }
+    transferPrices: { miraflores: 70, barranco: 75, sanisidro: 65, centro: 60, callao: 35 },
+    featuredTour: null
   };
 
   var overrides = { attractions: {}, restaurants: {}, tours: {}, settings: {} };
@@ -125,16 +126,24 @@
     return out;
   }
 
+  // Datos base con sus cambios, más los lugares nuevos que creó el administrador.
+  function merge(baseList, ovMap, includeHidden) {
+    var known = {};
+    var out = baseList.map(function (x) { known[x.id] = true; return apply(x, ovMap[x.id]); });
+    Object.keys(ovMap).forEach(function (id) {
+      var ov = ovMap[id];
+      if (!known[id] && ov && ov.custom) out.push(apply({ id: id }, ov));
+    });
+    return out.filter(function (x) { return includeHidden || !x.hidden; });
+  }
+
   /** Ciudad con los cambios del administrador aplicados. */
   function effective(base, includeHidden) {
     var c = Object.assign({}, base);
     c.settings = Object.assign({}, DEFAULT_SETTINGS, base.settings || {}, overrides.settings);
-    c.attractions = base.attractions.map(function (a) { return apply(a, overrides.attractions[a.id]); })
-      .filter(function (a) { return includeHidden || !a.hidden; });
-    c.restaurants = base.restaurants.map(function (r) { return apply(r, overrides.restaurants[r.id]); })
-      .filter(function (r) { return includeHidden || !r.hidden; });
-    c.tours = (base.tours || []).map(function (x) { return apply(x, overrides.tours[x.id]); })
-      .filter(function (x) { return includeHidden || !x.hidden; });
+    c.attractions = merge(base.attractions, overrides.attractions, includeHidden);
+    c.restaurants = merge(base.restaurants, overrides.restaurants, includeHidden);
+    c.tours = merge(base.tours || [], overrides.tours, includeHidden);
     return c;
   }
 

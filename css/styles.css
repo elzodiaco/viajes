@@ -297,6 +297,10 @@ body.admin-open main > :not(#admin) { display: none; }
 .pill { display: inline-block; font-size: .72rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
 .pill.on { background: var(--teal-soft); color: var(--teal); }
 .pill.off { background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); }
+.pill.new { background: var(--accent-soft); color: var(--accent); }
+.pill.star { background: var(--accent); color: var(--accent-ink); }
+.admin-add { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+.admin-form .checks { gap: 8px 18px; }
 .pill.edited { background: color-mix(in srgb, var(--gold) 20%, transparent); color: var(--text); }
 
 .btn.small { padding: 6px 12px; font-size: .82rem; }
@@ -413,6 +417,20 @@ body.admin-open main > :not(#admin) { display: none; }
 .taxi-actions { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
 .btn.whatsapp { background: var(--whatsapp); border-color: var(--whatsapp); color: #fff; text-decoration: none; padding: 12px 20px; }
 .btn.whatsapp:hover { filter: brightness(1.06); }
+
+.total-grid { display: flex; flex-wrap: wrap; gap: 12px 40px; }
+.total .avg { font-size: 1.5rem; color: var(--text); }
+.day-cost small + strong + small { margin-top: 2px; }
+.people-stepper { max-width: 260px; }
+.people-stepper input { font-size: 1.3rem; font-weight: 600; }
+.more-tours { margin-bottom: 20px; }
+.more-tours h3 { font-size: 1.2rem; margin-bottom: 10px; }
+.more-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 14px; }
+.mini-tour { padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.mini-tour h4 { margin: 0; font-size: 1.02rem; }
+.mini-tour p { margin: 0; font-size: .9rem; }
+.mini-tour .tour-price strong { font-size: 1.2rem; }
+.mini-tour .btn { text-decoration: none; margin-top: 6px; }
 
 /* ------------------------------------------------------------ responsive */
 @media (max-width: 760px) {

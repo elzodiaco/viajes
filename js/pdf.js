@@ -141,6 +141,10 @@
     doc.roundedRect(M, y, PAGE_W - 2 * M, 18 + note.length * lh(8.5), 3, 3, "F");
     color(C.muted); font("normal", 9); doc.text(clean(data.labels.estTotal), M + 4, y + 7);
     color(C.accent); font("bold", 15); doc.text(clean(data.total), M + 4, y + 14);
+    if (data.avg) {
+      color(C.muted); font("normal", 9); doc.text(clean(data.labels.avgPerson), PAGE_W / 2 + 4, y + 7);
+      color(C.text); font("bold", 13); doc.text(clean(data.avg), PAGE_W / 2 + 4, y + 14);
+    }
     color(C.muted); font("normal", 8.5); doc.text(note, M + 4, y + 19);
     y += 24 + note.length * lh(8.5);
 

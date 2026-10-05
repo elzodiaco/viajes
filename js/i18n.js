@@ -51,7 +51,9 @@
         tourYes: "Sí, inclúyelo en mi itinerario",
         tourNo: "No, gracias, prefiero ir por mi cuenta",
         pickTravelWith: "Elige con quién viajas para continuar.",
-        pickFirst: "Elige una opción para continuar."
+        pickFirst: "Elige una opción para continuar.",
+        people: "¿Cuántas personas viajan?",
+        peopleHint: "Contándote a ti. Así calculamos el gasto total del grupo y el promedio por persona."
       },
       tour: {
         badge: "Tour recomendado",
@@ -62,12 +64,14 @@
         book: "Reservar tour",
         add: "Agregar a mi itinerario",
         included: "Incluido en tu día {day}, de {from} a {to}.",
-        stopsLine: "Paradas: {list}."
+        stopsLine: "Paradas: {list}.",
+        more: "Más tours en Lima"
       },
       cab: {
         title: "Reserva tu taxi al aeropuerto con nosotros",
         lead: "Te recogemos en tu hotel el {date} a las {time} para tu vuelo de las {flight}. Sin buscar taxi a última hora.",
         price: "Precio por trayecto",
+        perVehicle: "por vehículo, hasta 4 personas",
         name: "Tu nombre",
         hotel: "Hotel o dirección de recojo",
         pax: "Pasajeros",
@@ -95,6 +99,7 @@
         solo: "un viaje en solitario", couple: "una pareja", friends: "un grupo de amigos", family: "una familia con niños",
         firstYes: " que visita Lima por primera vez", firstNo: " que ya conoce Lima",
         likes: ", con foco en {list}",
+        people: " ({n} personas)",
         and: " y ",
         i: { gastronomy: "gastronomía", history: "historia", art: "arte", beach: "el mar", nature: "naturaleza", nightlife: "vida nocturna", shopping: "compras", adventure: "aventura" }
       },
@@ -114,7 +119,12 @@
       summary: "{days} días · hotel en {zone} · vuelo {flight}",
       estDay: "Gasto estimado del día",
       estTotal: "Gasto estimado total por persona",
-      estNote: "Incluye entradas, comidas y taxis por aplicativo. No incluye hotel.",
+      estNote: "Entradas, comidas y tours se cuentan por persona; los taxis, por vehículo (hasta 4 personas). No incluye hotel.",
+      estGroup: "Total estimado para {n} personas",
+      estOne: "Total estimado para 1 persona",
+      avgPerson: "Promedio por persona",
+      perPerson: "{amount} por persona",
+      each: "c/u",
       rate: "Tipo de cambio referencial: US$ 1 = S/ {rate}.",
       free: "Gratis",
       walk: "a pie",
@@ -212,7 +222,9 @@
         tourYes: "Yes, add it to my itinerary",
         tourNo: "No thanks, I'll explore on my own",
         pickTravelWith: "Choose who you're traveling with to continue.",
-        pickFirst: "Choose an option to continue."
+        pickFirst: "Choose an option to continue.",
+        people: "How many people are traveling?",
+        peopleHint: "Including you. We use it to estimate the group total and the average per person."
       },
       tour: {
         badge: "Recommended tour",
@@ -223,12 +235,14 @@
         book: "Book this tour",
         add: "Add to my itinerary",
         included: "Included on day {day}, from {from} to {to}.",
-        stopsLine: "Stops: {list}."
+        stopsLine: "Stops: {list}.",
+        more: "More tours in Lima"
       },
       cab: {
         title: "Book your airport taxi with us",
         lead: "We'll pick you up at your hotel on {date} at {time} for your {flight} flight. No last-minute taxi hunting.",
         price: "Price per trip",
+        perVehicle: "per vehicle, up to 4 people",
         name: "Your name",
         hotel: "Hotel or pickup address",
         pax: "Passengers",
@@ -256,6 +270,7 @@
         solo: "a solo traveler", couple: "a couple", friends: "a group of friends", family: "a family with kids",
         firstYes: " visiting Lima for the first time", firstNo: " who already knows Lima",
         likes: ", focused on {list}",
+        people: " ({n} people)",
         and: " and ",
         i: { gastronomy: "food", history: "history", art: "art", beach: "the ocean", nature: "nature", nightlife: "nightlife", shopping: "shopping", adventure: "adventure" }
       },
@@ -275,7 +290,12 @@
       summary: "{days} days · hotel in {zone} · flight {flight}",
       estDay: "Estimated spend for the day",
       estTotal: "Estimated total per person",
-      estNote: "Includes tickets, meals and ride-hailing. Hotel not included.",
+      estNote: "Tickets, meals and tours are counted per person; taxis per vehicle (up to 4 people). Hotel not included.",
+      estGroup: "Estimated total for {n} people",
+      estOne: "Estimated total for 1 person",
+      avgPerson: "Average per person",
+      perPerson: "{amount} per person",
+      each: "each",
       rate: "Reference exchange rate: US$ 1 = S/ {rate}.",
       free: "Free",
       walk: "on foot",

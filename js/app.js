@@ -59,6 +59,10 @@
     return n > 0 ? soles(n) + " · " + dollars(n) : t("free");
   }
 
+  function eachSuffix(amount) {
+    return amount > 0 && lastPrefs && lastPrefs.people > 1 ? " " + t("each") : "";
+  }
+
   function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
@@ -131,6 +135,7 @@
       interests: selectedInterests(),
       // Respuestas del cuestionario
       travelWith: el.travelWith.value || "solo",
+      people: Math.max(1, Math.min(30, parseInt(el.people.value, 10) || 1)),
       firstTimeAns: el.firstTime.value,
       foodAns: el.food.value,
       tourAns: el.wantsTour.value,
@@ -142,7 +147,8 @@
 
   function fillForm(p) {
     var el = form.elements;
-    ["arrivalDate", "arrivalTime", "days", "departureTime", "hotelZone"].forEach(function (k) {
+    if (p.people) peopleTouched = true;
+    ["arrivalDate", "arrivalTime", "days", "departureTime", "hotelZone", "people"].forEach(function (k) {
       if (p[k] != null) el[k].value = p[k];
     });
     [["flightType", "flightType"], ["pace", "pace"], ["budget", "budget"], ["travelWith", "travelWith"],
@@ -210,7 +216,7 @@
         desc = L(ev.item.desc);
         if (ev.item.reservation) tags.push(t("reservation"));
         meta.push(L(c.zones[ev.item.zone].name));
-        meta.push("~" + money(ev.cost));
+        meta.push("~" + money(ev.cost) + eachSuffix(ev.cost));
         break;
       case "tour":
         var tour = ev.item;
@@ -219,7 +225,7 @@
         desc = L(tour.desc) + " " + t("tour.stopsLine", { list: tour.stops.map(L).join(", ") });
         tip = L(tour.tip);
         meta.push(duration(tour.duration));
-        meta.push("US$ " + tour.priceUsd + " · " + soles(ev.cost));
+        meta.push("US$ " + tour.priceUsd + " · " + soles(ev.cost) + eachSuffix(ev.cost));
         tags.push(t("reservation"));
         break;
       case "activity":
@@ -230,7 +236,7 @@
         tip = L(a.tip);
         meta.push(L(c.zones[a.zone].name));
         meta.push(duration(a.duration));
-        meta.push(money(a.cost));
+        meta.push(money(a.cost) + eachSuffix(a.cost));
         a.interests.forEach(function (i) { tags.push(t("interest." + i)); });
         break;
     }
@@ -297,7 +303,7 @@
           events: d.events.map(function (ev) { return eventData(ev, res); })
         };
       }),
-      labels: { estDay: t("estDay"), estTotal: t("estTotal"), tips: t("tipsTitle"), map: t("map"), book: t("tour.book"), taxiBook: t("cab.book") },
+      labels: { estDay: t("estDay"), estTotal: res.people > 1 ? t("estGroup", { n: res.people }) : t("estOne"), avgPerson: t("avgPerson"), tips: t("tipsTitle"), map: t("map"), book: t("tour.book"), taxiBook: t("cab.book") },
       persona: personaText(prefs),
       taxi: (function () {
         var info = taxiInfo(res, prefs);
@@ -309,6 +315,7 @@
         };
       })(),
       total: soles(res.total) + " · " + dollars(res.total),
+      avg: res.people > 1 ? soles(res.total / res.people) + " · " + dollars(res.total / res.people) : null,
       note: t("estNote") + " " + t("rate", { rate: c.settings.exchangeRate.toFixed(2) }),
       tips: c.tips.map(L),
       disclaimer: t("disclaimer"),
@@ -322,15 +329,16 @@
     // En español "y" pasa a "e" antes de una palabra que suena con "i".
     var and = lang === "es" && /^h?i/i.test(last) ? " e " : t("persona.and");
     var list = likes.length > 1 ? likes.slice(0, -1).join(", ") + and + last : likes.join("");
+    var group = prefs.people > 1 && prefs.travelWith !== "couple" ? t("persona.people", { n: prefs.people }) : "";
     return t("persona.lead", {
-      who: t("persona." + prefs.travelWith),
+      who: t("persona." + prefs.travelWith) + group,
       first: t(prefs.firstTime ? "persona.firstYes" : "persona.firstNo"),
       likes: list ? t("persona.likes", { list: list }) : ""
     });
   }
 
   function currentTour() {
-    return city().tours[0] || null;
+    return Planner.featuredTour(city());
   }
 
   // Tarjeta del tour: oferta en el cuestionario y en los resultados.
@@ -370,7 +378,18 @@
       (!ev && !prefs.wantsTour ? '<button type="button" class="btn" id="tour-add">' + esc(t("tour.add")) + "</button>" : "") +
       (tour.url ? '<a class="btn primary" target="_blank" rel="noopener" href="' + esc(tour.url) + '">' + esc(t("tour.book")) + "</a>" : "") +
       "</div>";
-    box.innerHTML = '<aside class="card tour-card">' + tourCardHTML(tour, status + actions) + "</aside>";
+    var others = city().tours.filter(function (x) { return x.id !== tour.id; });
+    box.innerHTML = '<aside class="card tour-card">' + tourCardHTML(tour, status + actions) + "</aside>" +
+      (others.length ? '<section class="more-tours"><h3>' + esc(t("tour.more")) + '</h3><div class="more-grid">' +
+        others.map(function (x) {
+          return '<article class="card mini-tour"><span class="tour-provider">' + esc(x.provider || "") + "</span>" +
+            "<h4>" + esc(L(x.name)) + "</h4>" +
+            '<p class="tour-price"><strong>US$ ' + x.priceUsd + "</strong> <span>· ≈ " + soles(x.priceUsd * city().settings.exchangeRate) +
+              " · " + esc(t("tour.hours", { h: Math.round(x.duration / 60 * 10) / 10 })) + "</span></p>" +
+            "<p>" + esc(L(x.desc)) + "</p>" +
+            (x.url ? '<a class="btn small primary" target="_blank" rel="noopener" href="' + esc(x.url) + '">' + esc(t("tour.book")) + "</a>" : "") +
+            "</article>";
+        }).join("") + "</div></section>" : "");
   }
 
   // ------------------------------------------------- taxi al aeropuerto
@@ -442,7 +461,7 @@
     var info = taxiInfo(res, prefs);
     if (!info) { box.innerHTML = ""; return; }
     // Conserva lo que el turista ya escribió si el plan se vuelve a generar.
-    var prev = document.getElementById("taxi-name") ? taxiFields() : { name: "", hotel: "", pax: "2", bags: "2", flightNo: "", arrival: false };
+    var prev = document.getElementById("taxi-name") ? taxiFields() : { name: "", hotel: "", pax: String(prefs.people), bags: String(prefs.people), flightNo: "", arrival: false };
     var num = function (id, label, value) {
       return '<label class="field" for="' + id + '"><span>' + esc(label) + '</span><input id="' + id + '" type="number" min="1" max="12" value="' + esc(value) + '"></label>';
     };
@@ -452,7 +471,8 @@
           '<h3 id="taxi-title">' + esc(t("cab.title")) + "</h3>" +
           "<p>" + esc(t("cab.lead", { date: info.pickupDate, time: info.pickupTime, flight: prefs.departureTime })) + "</p>" +
         "</div>" +
-        (info.price ? '<div class="taxi-price"><small>' + esc(t("cab.price")) + "</small><strong>" + money(info.price) + "</strong></div>" : "") +
+        (info.price ? '<div class="taxi-price"><small>' + esc(t("cab.price")) + "</small><strong>" + money(info.price) + "</strong>" +
+          "<small>" + esc(t("cab.perVehicle")) + "</small></div>" : "") +
         "</div>" +
         '<div class="taxi-grid">' +
           '<label class="field wide" for="taxi-name"><span>' + esc(t("cab.name")) + '</span><input id="taxi-name" type="text" autocomplete="name" value="' + esc(prev.name) + '"></label>' +
@@ -496,15 +516,20 @@
       return '<section class="card day" id="day-' + i + '">' +
         '<header class="day-head"><div><span class="day-num">' + t("day") + " " + (i + 1) + "</span>" +
         "<h3>" + esc(capitalize(dateFmt.format(d.date))) + "</h3></div>" +
-        '<div class="day-cost"><small>' + esc(t("estDay")) + "</small><strong>" + money(d.cost) + "</strong></div></header>" +
+        '<div class="day-cost"><small>' + esc(t("estDay")) + "</small><strong>" + money(d.cost) + "</strong>" +
+          (res.people > 1 ? "<small>" + esc(t("perPerson", { amount: soles(d.cost / res.people) })) + "</small>" : "") +
+        "</div></header>" +
         '<div class="timeline">' + d.events.map(function (ev) { return eventView(ev, res); }).join("") + "</div>" +
         (hasActivity ? "" : '<p class="muted small">' + esc(t("emptyDay")) + "</p>") +
         "</section>";
     }).join("");
 
+    var avg = res.total / res.people;
     document.getElementById("total").innerHTML =
-      "<div><small>" + esc(t("estTotal")) + "</small><strong>" + soles(res.total) +
+      '<div class="total-grid"><div><small>' + esc(res.people > 1 ? t("estGroup", { n: res.people }) : t("estOne")) + "</small><strong>" + soles(res.total) +
       ' <span class="usd">' + dollars(res.total) + "</span></strong></div>" +
+      (res.people > 1 ? "<div><small>" + esc(t("avgPerson")) + '</small><strong class="avg">' + soles(avg) +
+        ' <span class="usd">' + dollars(avg) + "</span></strong></div>" : "") + "</div>" +
       '<p class="muted small">' + esc(t("estNote")) + " " +
       esc(t("rate", { rate: c.settings.exchangeRate.toFixed(2) })) + "</p>";
 
@@ -591,8 +616,18 @@
     showStep(stepIndex - 1, true);
   });
 
+  // Sugerimos el número de personas según con quién viaja.
+  var peopleTouched = false;
+  var PEOPLE_BY_GROUP = { solo: 1, couple: 2, friends: 3, family: 4 };
+  form.addEventListener("input", function (e) {
+    if (e.target.name === "people") peopleTouched = true;
+  });
+
   // Al elegir una opción, pasa solo a la siguiente pregunta.
   form.addEventListener("change", function (e) {
+    if (e.target.name === "travelWith" && !peopleTouched) {
+      form.elements.people.value = PEOPLE_BY_GROUP[e.target.value] || 2;
+    }
     if (e.target.type === "radio" && e.target.closest(".options")) {
       clearTimeout(advanceTimer);
       advanceTimer = setTimeout(nextStep, 260);
@@ -640,8 +675,11 @@
   form.addEventListener("click", function (e) {
     var b = e.target.closest("[data-delta]");
     if (!b) return;
-    var input = form.elements.days;
-    input.value = Math.max(1, Math.min(14, (parseInt(input.value, 10) || 1) + parseInt(b.getAttribute("data-delta"), 10)));
+    var name = b.getAttribute("data-target") || "days";
+    var input = form.elements[name];
+    var max = name === "people" ? 30 : 14;
+    input.value = Math.max(1, Math.min(max, (parseInt(input.value, 10) || 1) + parseInt(b.getAttribute("data-delta"), 10)));
+    if (name === "people") peopleTouched = true;
   });
 
   function updateEarlyHint() {
